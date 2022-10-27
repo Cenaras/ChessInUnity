@@ -29,7 +29,6 @@ public class Board {
 
     private readonly Piece[,] pieces;
 
-
     public Board(Piece[,] pieces) {
         this.pieces = pieces;
     }
@@ -48,7 +47,7 @@ public class Board {
             {'k', Piece.PieceType.King},
             {'p', Piece.PieceType.Pawn},
         };
-        
+
         Piece[,] pieces = new Piece[8, 8];
         String[] fenRanks = fen.Split('/');
         for (int i = 0; i < 8; i++) {
@@ -69,7 +68,8 @@ public class Board {
     }
 
 
-    public void MakeMove(BoardPosition from, BoardPosition to) {
+    /** Returns true if the move was made */
+    public bool MakeMove(GameColor playerColor, BoardPosition from, BoardPosition to) {
         /*
         How a move works:
         We get the piece.
@@ -80,16 +80,25 @@ public class Board {
 
         // For now; brute force piece to position
 
+        // Moving a piece to its own location is not valid.
+        //if (from.Equals(to)) return false;
+
+
         Piece movingPiece = PieceAt(from);
-        MovePiece(movingPiece, from, to);
+        // Only move the piece if it exists and is from the right player
+        if (movingPiece != null && movingPiece.PieceColor() == playerColor) {
+            MovePiece(movingPiece, from, to);
+            return true;
+        }
+        Debug.Log("Move illegal");
+        return false;
+
     }
 
 
     private void MovePiece(Piece piece, BoardPosition from, BoardPosition to) {
-        if (piece != null) {
-            ClearPositionAt(from);
-            PlacePieceAt(to, piece);
-        } 
+        ClearPositionAt(from);
+        PlacePieceAt(to, piece);
     }
 
 

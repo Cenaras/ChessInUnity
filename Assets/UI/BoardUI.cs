@@ -73,12 +73,22 @@ public class BoardUI : MonoBehaviour {
                 // If a piece is present, render it otherwise remove textures by setting to null.
                 if (piece != null) {
                     pieceRenderers[file, rank].sprite = piece.sprite();
-                }
-                else {
+                } else {
                     pieceRenderers[file, rank].sprite = null;
                 }
             }
         }
-
     }
+
+    public void DragPieceAnim(BoardPosition position, Vector2 mousePos) {
+        pieceRenderers[position.file, position.rank].transform.position = mousePos;
+    }
+
+    public void ResetPiecePosition(BoardPosition originalPiecePosition) {
+        pieceRenderers[originalPiecePosition.file, originalPiecePosition.rank].transform.position = 
+            new Vector2(
+                originalPiecePosition.rank,
+                originalPiecePosition.file);
+    }
+
 }

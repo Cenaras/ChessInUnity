@@ -23,6 +23,9 @@ public class Piece {
         return type;
     }
 
+    public GameColor PieceColor() {
+        return isWhite ? GameColor.WHITE : GameColor.BLACK;
+    }
 
     public enum PieceType : ushort {
         Pawn = 0,
