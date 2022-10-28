@@ -1,9 +1,13 @@
+using UnityEngine.UIElements;
+
 public class Rook : Piece {
 
-    private GameColor color;
+    private GameConstants.GameColor color;
+    private BoardPosition position;
 
-    public Rook(GameColor pieceColor) {
+    public Rook(GameConstants.GameColor pieceColor, BoardPosition startingPosition) {
         color = pieceColor;
+        position = startingPosition;
     }
 
 
@@ -11,8 +15,16 @@ public class Rook : Piece {
         return Piece.PieceType.Rook;
     }
 
-    public GameColor PieceColor() {
+    public GameConstants.GameColor PieceColor() {
         return color;
+    }
+
+    public BoardPosition GetPosition() {
+        return position;
+    }
+
+    public void SetPosition(BoardPosition position) {
+        this.position = position;
     }
 
 }

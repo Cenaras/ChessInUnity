@@ -14,6 +14,12 @@ public interface Piece
     }
 
     public PieceType GetPieceType();
-    public GameColor PieceColor();
+    public GameConstants.GameColor PieceColor();
+    public BoardPosition GetPosition();
+    public void SetPosition(BoardPosition position);
+    public Sprite sprite() {
+        return GameConstants.GetPieceSprite(this);
+    }
+
 
 }

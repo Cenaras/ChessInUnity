@@ -27,39 +27,39 @@ public record BoardPosition(int file, int rank) {
 public class Board {
 
 
-    private readonly PieceOld[,] pieces;
-    public GameColor colorToMove;
+    private readonly Piece[,] pieces;
+    public GameConstants.GameColor colorToMove;
 
 
     private void SwapTurn() { 
-        if (colorToMove == GameColor.WHITE) {
-            colorToMove = GameColor.BLACK;
+        if (colorToMove == GameConstants.GameColor.White) {
+            colorToMove = GameConstants.GameColor.Black;
         } else {
-            colorToMove = GameColor.WHITE;
+            colorToMove = GameConstants.GameColor.White;
         }
     }
 
-    public Board(PieceOld[,] pieces) {
+    public Board(Piece[,] pieces) {
         this.pieces = pieces;
-        colorToMove = GameColor.WHITE;
+        colorToMove = GameConstants.GameColor.Black;
     }
 
-    public PieceOld[,] getBoardState() {
+    public Piece[,] getBoardState() {
         return pieces;
     }
 
     public static Board parseFen(String fen) {
-        Dictionary<char, PieceOld.PieceType> pieceFromSymbol = new Dictionary<char, PieceOld.PieceType>()
+        Dictionary<char, Piece.PieceType> pieceFromSymbol = new Dictionary<char, Piece.PieceType>()
         {
-            {'r', PieceOld.PieceType.Rook},
-            {'n', PieceOld.PieceType.Knight},
-            {'b', PieceOld.PieceType.Bishop},
-            {'q', PieceOld.PieceType.Queen},
-            {'k', PieceOld.PieceType.King},
-            {'p', PieceOld.PieceType.Pawn},
+            {'r', Piece.PieceType.Rook},
+            {'n', Piece.PieceType.Knight},
+            {'b', Piece.PieceType.Bishop},
+            {'q', Piece.PieceType.Queen},
+            {'k', Piece.PieceType.King},
+            {'p', Piece.PieceType.Pawn},
         };
 
-        PieceOld[,] pieces = new PieceOld[8, 8];
+        Piece[,] pieces = new Piece[8, 8];
         String[] fenRanks = fen.Split('/');
         for (int i = 0; i < 8; i++) {
             int file = 0;
@@ -67,10 +67,25 @@ public class Board {
             foreach (char c in fenRank) {
                 if (Char.IsDigit(c)) file += c;
                 else {
-                    PieceOld.PieceType pieceType = pieceFromSymbol[char.ToLower(c)];
+                    Piece.PieceType pieceType = pieceFromSymbol[char.ToLower(c)];
                     bool isWhite = char.IsUpper(c);
                     //Debug.Log($"Placing piece {pieceType} at position {i}, {file}, white: {isWhite}");
-                    pieces[7 - i, file] = new PieceOld(pieceType, isWhite);
+                    GameConstants.GameColor pieceColor = isWhite ? GameConstants.GameColor.White : GameConstants.GameColor.Black;
+
+
+                    BoardPosition posOnBoard = new BoardPosition(7 - i, file);
+
+                    Piece piece = pieceType switch {
+                        Piece.PieceType.Pawn => new Pawn(pieceColor, posOnBoard),
+                        Piece.PieceType.Knight => new Knight(pieceColor, posOnBoard),
+                        Piece.PieceType.Bishop => new Bishop(pieceColor, posOnBoard),
+                        Piece.PieceType.Rook => new Rook(pieceColor, posOnBoard),
+                        Piece.PieceType.Queen => new Queen(pieceColor, posOnBoard),
+                        Piece.PieceType.King=>  new King(pieceColor, posOnBoard),
+                        _ => throw new Exception("Impossible")
+                    };
+
+                    pieces[7 - i, file] = piece;
                     file++;
                 }
             }
@@ -80,7 +95,7 @@ public class Board {
 
 
     /** Returns true if the move was made */
-    public bool MakeMove(GameColor playerColor, BoardPosition from, BoardPosition to) {
+    public bool MakeMove(GameConstants.GameColor playerColor, BoardPosition from, BoardPosition to) {
         /*
         How a move works:
         We get the piece.
@@ -95,10 +110,11 @@ public class Board {
         //if (from.Equals(to)) return false;
 
 
-        PieceOld movingPiece = PieceAt(from);
+        Piece movingPiece = PieceAt(from);
         // Only move the piece if it exists and is from the right player
         if (movingPiece != null && movingPiece.PieceColor() == playerColor) {
             MovePiece(movingPiece, from, to);
+            movingPiece.SetPosition(to);
             SwapTurn();
             return true;
         }
@@ -108,18 +124,18 @@ public class Board {
     }
 
 
-    private void MovePiece(PieceOld piece, BoardPosition from, BoardPosition to) {
+    private void MovePiece(Piece piece, BoardPosition from, BoardPosition to) {
         ClearPositionAt(from);
         PlacePieceAt(to, piece);
     }
 
 
-    public PieceOld PieceAt(BoardPosition position) {
+    public Piece PieceAt(BoardPosition position) {
         //Debug.Log("Piece")
         return pieces[position.file, position.rank];
     }
 
-    private void PlacePieceAt(BoardPosition position, PieceOld piece) {
+    private void PlacePieceAt(BoardPosition position, Piece piece) {
         Debug.Log("Placing piece at " + position);
         pieces[position.file, position.rank] = piece;
     }

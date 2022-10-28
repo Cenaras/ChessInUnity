@@ -1,9 +1,10 @@
 public class King : Piece {
 
-    private GameColor color;
-
-    public King(GameColor pieceColor) {
+    private GameConstants.GameColor color;
+    private BoardPosition position;
+    public King(GameConstants.GameColor pieceColor, BoardPosition startingPosition) {
         color = pieceColor;
+        position = startingPosition;
     }
 
 
@@ -11,8 +12,16 @@ public class King : Piece {
         return Piece.PieceType.King;
     }
 
-    public GameColor PieceColor() {
+    public GameConstants.GameColor PieceColor() {
         return color;
+    }
+
+    public BoardPosition GetPosition() {
+        return position;
+    }
+
+    public void SetPosition(BoardPosition position) {
+        this.position = position;
     }
 
 }

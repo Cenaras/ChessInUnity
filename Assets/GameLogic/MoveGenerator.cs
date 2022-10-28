@@ -12,12 +12,11 @@ public class MoveGenerator
         for (int rank = 0; rank < 7; rank++) {
             for (int file = 0; file < 7; file++) {
                 BoardPosition pos = new BoardPosition(file, rank);
-                PieceOld piece = board.PieceAt(pos);
+                Piece piece = board.PieceAt(pos);
                 if (piece.PieceColor() == board.colorToMove) {
+                    // Add the valid moves for this piece to total list of valid moves
                     List<Move> validMovesForPiece = GenerateValidMovesForPiece(piece);
-
-
-
+                    validMoves.AddRange(validMovesForPiece);
                 }
             }
         }
@@ -25,7 +24,20 @@ public class MoveGenerator
         return validMoves;
     }
 
-    private List<Move> GenerateValidMovesForPiece(PieceOld piece) {
+    private List<Move> GenerateValidMovesForPiece(Piece piece) {
+        if (piece.GetPieceType() == Piece.PieceType.Pawn) {
+            return ValidPawnMoves(piece as Pawn);
+        }
+
+
         return new List<Move>();
     }
+
+    private List<Move> ValidPawnMoves(Pawn pawn) {
+        List<Move> validMoves = new List<Move>();
+
+
+        return validMoves;
+    }
+
 }

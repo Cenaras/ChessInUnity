@@ -13,11 +13,6 @@ enum MovingActionPhase {
     PIECE_DRAGGED,
 }
 
-public enum GameColor {
-    WHITE,
-    BLACK
-}
-
 
 public class Player : PlayerStrategy {
 
@@ -29,13 +24,13 @@ public class Player : PlayerStrategy {
 
     private MovingActionPhase movingPhase;
     private BoardPosition selectedSquare;
-    private GameColor color;
+    private GameConstants.GameColor color;
 
 
 
     Camera cam;
 
-    public Player(String username, GameColor color, Board board) {
+    public Player(String username, GameConstants.GameColor color, Board board) {
         cam = Camera.main;
         this.username = username;
         this.board = board;
@@ -85,7 +80,7 @@ public class Player : PlayerStrategy {
     void HandlePieceSelection() {
         if (Input.GetMouseButtonDown(0)) {
             BoardPosition clickedPosition = BoardPosFromMouse();
-            PieceOld piece = board.PieceAt(clickedPosition);
+            Piece piece = board.PieceAt(clickedPosition);
 
             selectedSquare = clickedPosition;
             movingPhase = MovingActionPhase.PIECE_DRAGGED;

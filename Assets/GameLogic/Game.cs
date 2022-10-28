@@ -40,8 +40,8 @@ public class Game : MonoBehaviour
     private void StartNewGame(String FenStartingPosition) {
         // Maybe make an event for registering a move instead of returning a bool when it does from TryGenerateMove()?
         board = Board.parseFen(FenStartingPosition);
-        whitePlayer = new Player("WhitePlayer", GameColor.WHITE, board);
-        blackPlayer = new Player("BlackPlayer", GameColor.BLACK, board);
+        whitePlayer = new Player("WhitePlayer", GameConstants.GameColor.White, board);
+        blackPlayer = new Player("BlackPlayer", GameConstants.GameColor.Black, board);
         playerToMove = whitePlayer;
     }
 
