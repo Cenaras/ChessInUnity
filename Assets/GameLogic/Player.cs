@@ -94,15 +94,16 @@ public class Player : PlayerStrategy {
 
         if (Input.GetMouseButtonUp(0)) {
             BoardPosition targetSquare = BoardPosFromMouse();
-            return HandlePiecePlacement(fromSquare, targetSquare);
+            Move tryingMove = new Move(fromSquare, targetSquare);
+            return HandlePiecePlacement(tryingMove);
         }
         return false;
     }
 
-    bool HandlePiecePlacement(BoardPosition fromPos, BoardPosition toPos) {
+    bool HandlePiecePlacement(Move tryingMove) {
         if (movingPhase == MovingActionPhase.PIECE_DRAGGED) {
             movingPhase = MovingActionPhase.NO_ACTION;
-            bool moveMade = board.MakeMove(color, fromPos, toPos);
+            bool moveMade = board.TryMakeMove(color, tryingMove);
             if (!moveMade) {
                 CancelPieceSelection();
             }

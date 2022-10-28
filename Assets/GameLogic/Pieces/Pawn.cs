@@ -4,10 +4,15 @@ public class Pawn : Piece {
 
     private GameConstants.GameColor color;
     private BoardPosition position;
-    
+
+    // Auto generate getter and setter
+    public bool HasMoved { get; set; }
+
+
     public Pawn(GameConstants.GameColor pieceColor, BoardPosition startingPosition) {
         color = pieceColor;
         position = startingPosition;
+        HasMoved = false;
     }
 
     
@@ -25,4 +30,7 @@ public class Pawn : Piece {
     public void SetPosition(BoardPosition position) {
         this.position = position;
     }
+
+
+
 }

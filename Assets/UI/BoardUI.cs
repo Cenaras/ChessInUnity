@@ -68,7 +68,7 @@ public class BoardUI : MonoBehaviour {
 
         for (int rank = 0; rank < 8; rank++) {
             for (int file = 0; file < 8; file++) {
-                Piece piece = board.getBoardState()[file, rank];
+                Piece piece = board.GetBoardState()[file, rank];
 
                 // If a piece is present, render it otherwise remove textures by setting to null.
                 if (piece != null) {

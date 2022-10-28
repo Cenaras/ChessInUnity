@@ -29,9 +29,9 @@ public class Board {
 
     private readonly Piece[,] pieces;
     public GameConstants.GameColor colorToMove;
+    private MoveGenerator moveGen;
 
-
-    private void SwapTurn() { 
+    private void SwapTurn() {
         if (colorToMove == GameConstants.GameColor.White) {
             colorToMove = GameConstants.GameColor.Black;
         } else {
@@ -41,10 +41,11 @@ public class Board {
 
     public Board(Piece[,] pieces) {
         this.pieces = pieces;
-        colorToMove = GameConstants.GameColor.Black;
+        colorToMove = GameConstants.GameColor.White;
+        moveGen = new MoveGenerator();
     }
 
-    public Piece[,] getBoardState() {
+    public Piece[,] GetBoardState() {
         return pieces;
     }
 
@@ -81,7 +82,7 @@ public class Board {
                         Piece.PieceType.Bishop => new Bishop(pieceColor, posOnBoard),
                         Piece.PieceType.Rook => new Rook(pieceColor, posOnBoard),
                         Piece.PieceType.Queen => new Queen(pieceColor, posOnBoard),
-                        Piece.PieceType.King=>  new King(pieceColor, posOnBoard),
+                        Piece.PieceType.King => new King(pieceColor, posOnBoard),
                         _ => throw new Exception("Impossible")
                     };
 
@@ -95,7 +96,7 @@ public class Board {
 
 
     /** Returns true if the move was made */
-    public bool MakeMove(GameConstants.GameColor playerColor, BoardPosition from, BoardPosition to) {
+    public bool TryMakeMove(GameConstants.GameColor playerColor, Move move) {
         /*
         How a move works:
         We get the piece.
@@ -110,17 +111,28 @@ public class Board {
         //if (from.Equals(to)) return false;
 
 
-        Piece movingPiece = PieceAt(from);
-        // Only move the piece if it exists and is from the right player
-        if (movingPiece != null && movingPiece.PieceColor() == playerColor) {
-            MovePiece(movingPiece, from, to);
-            movingPiece.SetPosition(to);
-            SwapTurn();
-            return true;
-        }
-        Debug.Log("Move illegal");
-        return false;
+        Piece movingPiece = PieceAt(move.from);
 
+        // Only move the piece if it exists and is from the right player
+        if (movingPiece == null || movingPiece.PieceColor() != playerColor) {
+            Debug.Log("Cannot move - wrong color or no piece");
+            return false;
+        }
+
+        // Generate valid moves for current position and check if the move we tried to make is valid.
+        List<Move> legalMoves = moveGen.GenerateValidMoves(this);
+        if (!legalMoves.Contains(move)) {
+            return false;
+        }
+
+        MovePiece(movingPiece, move.from, move.to);
+        movingPiece.SetPosition(move.to);
+        // If pawn move, mark as HasMoved.
+        if (movingPiece.GetPieceType()  == Piece.PieceType.Pawn) {
+            (movingPiece as Pawn).HasMoved = true;
+        }
+        SwapTurn();
+        return true;
     }
 
 

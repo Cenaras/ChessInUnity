@@ -10,4 +10,10 @@ public struct Move {
 
     public BoardPosition from { get; }
     public BoardPosition to { get; }
+
+    public override string ToString() {
+        return $"{from} --> {to}";
+    }
+
+
 }
