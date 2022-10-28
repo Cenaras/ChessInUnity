@@ -7,14 +7,14 @@ using UnityEngine;
 
 /* TODO: Make Piece interface and class for each type of piece. */
 
-public class Piece {
+public class PieceOld {
 
     private PieceType type;
     private bool isWhite;
     private Sprite pieceSprite;
 
 
-    public Piece(PieceType type, bool isWhite) {
+    public PieceOld(PieceType type, bool isWhite) {
         this.type = type;
         this.isWhite = isWhite;
         pieceSprite = getSpriteForPieceType(type, isWhite);

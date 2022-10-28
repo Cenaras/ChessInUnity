@@ -85,7 +85,7 @@ public class Player : PlayerStrategy {
     void HandlePieceSelection() {
         if (Input.GetMouseButtonDown(0)) {
             BoardPosition clickedPosition = BoardPosFromMouse();
-            Piece piece = board.PieceAt(clickedPosition);
+            PieceOld piece = board.PieceAt(clickedPosition);
 
             selectedSquare = clickedPosition;
             movingPhase = MovingActionPhase.PIECE_DRAGGED;

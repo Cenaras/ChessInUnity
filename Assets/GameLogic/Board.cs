@@ -27,7 +27,7 @@ public record BoardPosition(int file, int rank) {
 public class Board {
 
 
-    private readonly Piece[,] pieces;
+    private readonly PieceOld[,] pieces;
     public GameColor colorToMove;
 
 
@@ -39,27 +39,27 @@ public class Board {
         }
     }
 
-    public Board(Piece[,] pieces) {
+    public Board(PieceOld[,] pieces) {
         this.pieces = pieces;
         colorToMove = GameColor.WHITE;
     }
 
-    public Piece[,] getBoardState() {
+    public PieceOld[,] getBoardState() {
         return pieces;
     }
 
     public static Board parseFen(String fen) {
-        Dictionary<char, Piece.PieceType> pieceFromSymbol = new Dictionary<char, Piece.PieceType>()
+        Dictionary<char, PieceOld.PieceType> pieceFromSymbol = new Dictionary<char, PieceOld.PieceType>()
         {
-            {'r', Piece.PieceType.Rook},
-            {'n', Piece.PieceType.Knight},
-            {'b', Piece.PieceType.Bishop},
-            {'q', Piece.PieceType.Queen},
-            {'k', Piece.PieceType.King},
-            {'p', Piece.PieceType.Pawn},
+            {'r', PieceOld.PieceType.Rook},
+            {'n', PieceOld.PieceType.Knight},
+            {'b', PieceOld.PieceType.Bishop},
+            {'q', PieceOld.PieceType.Queen},
+            {'k', PieceOld.PieceType.King},
+            {'p', PieceOld.PieceType.Pawn},
         };
 
-        Piece[,] pieces = new Piece[8, 8];
+        PieceOld[,] pieces = new PieceOld[8, 8];
         String[] fenRanks = fen.Split('/');
         for (int i = 0; i < 8; i++) {
             int file = 0;
@@ -67,10 +67,10 @@ public class Board {
             foreach (char c in fenRank) {
                 if (Char.IsDigit(c)) file += c;
                 else {
-                    Piece.PieceType pieceType = pieceFromSymbol[char.ToLower(c)];
+                    PieceOld.PieceType pieceType = pieceFromSymbol[char.ToLower(c)];
                     bool isWhite = char.IsUpper(c);
                     //Debug.Log($"Placing piece {pieceType} at position {i}, {file}, white: {isWhite}");
-                    pieces[7 - i, file] = new Piece(pieceType, isWhite);
+                    pieces[7 - i, file] = new PieceOld(pieceType, isWhite);
                     file++;
                 }
             }
@@ -95,7 +95,7 @@ public class Board {
         //if (from.Equals(to)) return false;
 
 
-        Piece movingPiece = PieceAt(from);
+        PieceOld movingPiece = PieceAt(from);
         // Only move the piece if it exists and is from the right player
         if (movingPiece != null && movingPiece.PieceColor() == playerColor) {
             MovePiece(movingPiece, from, to);
@@ -108,18 +108,18 @@ public class Board {
     }
 
 
-    private void MovePiece(Piece piece, BoardPosition from, BoardPosition to) {
+    private void MovePiece(PieceOld piece, BoardPosition from, BoardPosition to) {
         ClearPositionAt(from);
         PlacePieceAt(to, piece);
     }
 
 
-    public Piece PieceAt(BoardPosition position) {
+    public PieceOld PieceAt(BoardPosition position) {
         //Debug.Log("Piece")
         return pieces[position.file, position.rank];
     }
 
-    private void PlacePieceAt(BoardPosition position, Piece piece) {
+    private void PlacePieceAt(BoardPosition position, PieceOld piece) {
         Debug.Log("Placing piece at " + position);
         pieces[position.file, position.rank] = piece;
     }
