@@ -5,6 +5,8 @@ using Unity.VisualScripting;
 using Unity.VisualScripting.FullSerializer;
 using UnityEngine;
 
+/* TODO: Make Piece interface and class for each type of piece. */
+
 public class Piece {
 
     private PieceType type;

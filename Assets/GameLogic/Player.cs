@@ -94,7 +94,8 @@ public class Player : PlayerStrategy {
 
     bool HandleDraggedPlacement() {
         BoardPosition fromSquare = selectedSquare;
-        boardUI.DragPieceAnim(fromSquare, cam.ScreenToWorldPoint(Input.mousePosition));
+        // TODO: Fix drag animation when piece hits previously occupied square.
+        //boardUI.DragPieceAnim(fromSquare, cam.ScreenToWorldPoint(Input.mousePosition));
 
         if (Input.GetMouseButtonUp(0)) {
             BoardPosition targetSquare = BoardPosFromMouse();

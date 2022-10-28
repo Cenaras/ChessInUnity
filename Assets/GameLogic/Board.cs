@@ -28,9 +28,20 @@ public class Board {
 
 
     private readonly Piece[,] pieces;
+    public GameColor colorToMove;
+
+
+    private void SwapTurn() { 
+        if (colorToMove == GameColor.WHITE) {
+            colorToMove = GameColor.BLACK;
+        } else {
+            colorToMove = GameColor.WHITE;
+        }
+    }
 
     public Board(Piece[,] pieces) {
         this.pieces = pieces;
+        colorToMove = GameColor.WHITE;
     }
 
     public Piece[,] getBoardState() {
@@ -88,6 +99,7 @@ public class Board {
         // Only move the piece if it exists and is from the right player
         if (movingPiece != null && movingPiece.PieceColor() == playerColor) {
             MovePiece(movingPiece, from, to);
+            SwapTurn();
             return true;
         }
         Debug.Log("Move illegal");
