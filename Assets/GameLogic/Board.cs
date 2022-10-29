@@ -22,6 +22,12 @@ public record BoardPosition(int file, int rank) {
         return $"[{rank}, {file}]";
     }
 
+    public static BoardPosition Add(BoardPosition left, BoardPosition right) {
+        return new BoardPosition(left.file + right.file, left.rank + right.rank);
+    }
+    
+
+
 }
 
 public class Board {
@@ -29,7 +35,8 @@ public class Board {
 
     private readonly Piece[,] pieces;
     public GameConstants.GameColor colorToMove;
-    private MoveGenerator moveGen;
+    public MoveGenerator moveGen;
+
 
     private void SwapTurn() {
         if (colorToMove == GameConstants.GameColor.White) {
@@ -96,7 +103,7 @@ public class Board {
 
 
     /** Returns true if the move was made */
-    public bool TryMakeMove(GameConstants.GameColor playerColor, Move move) {
+    public bool TryMakeMove(GameConstants.GameColor playerColor, Move move, List<Move> validMoves) {
         /*
         How a move works:
         We get the piece.
@@ -120,8 +127,7 @@ public class Board {
         }
 
         // Generate valid moves for current position and check if the move we tried to make is valid.
-        List<Move> legalMoves = moveGen.GenerateValidMoves(this);
-        if (!legalMoves.Contains(move)) {
+        if (!validMoves.Contains(move)) {
             return false;
         }
 
@@ -143,7 +149,7 @@ public class Board {
 
 
     public Piece PieceAt(BoardPosition position) {
-        //Debug.Log("Piece")
+        //Debug.Log("Position: " + position);
         return pieces[position.file, position.rank];
     }
 

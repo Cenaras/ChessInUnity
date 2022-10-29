@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine.UIElements;
 
 public class Rook : Piece {
@@ -27,4 +28,7 @@ public class Rook : Piece {
         this.position = position;
     }
 
+    public List<BoardPosition> CandidateSquares() {
+        throw new System.NotImplementedException();
+    }
 }

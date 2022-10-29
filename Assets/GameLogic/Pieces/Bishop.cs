@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 public class Bishop : Piece {
 
     private GameConstants.GameColor color;
@@ -18,11 +20,15 @@ public class Bishop : Piece {
         return color;
     }
 
-    public BoardPosition GetPosition() {
+        public BoardPosition GetPosition() {
         return position;
     }
 
     public void SetPosition(BoardPosition position) {
         this.position = position;
+    }
+
+    public List<BoardPosition> CandidateSquares() {
+        throw new System.NotImplementedException();
     }
 }

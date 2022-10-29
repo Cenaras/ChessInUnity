@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 public class King : Piece {
 
     private GameConstants.GameColor color;
@@ -24,4 +26,7 @@ public class King : Piece {
         this.position = position;
     }
 
+    public List<BoardPosition> CandidateSquares() {
+        throw new System.NotImplementedException();
+    }
 }

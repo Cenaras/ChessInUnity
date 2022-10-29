@@ -1,9 +1,12 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class MoveGenerator {
     public List<Move> GenerateValidMoves(Board board) {
+
+        // TODO: Only generate moves for selected piece - pass piece as param to this.
 
         List<Move> validMoves = new List<Move>();
 
@@ -41,9 +44,26 @@ public class MoveGenerator {
         if (piece.GetPieceType() == Piece.PieceType.Pawn) {
             return ValidPawnMoves(piece as Pawn, board);
         }
-
+        if (piece.GetPieceType() == Piece.PieceType.Knight) {
+            return ValidKnightMoves(piece as Knight, board);
+        }
 
         return new List<Move>();
+    }
+
+    private List<Move> ValidKnightMoves(Knight knight, Board board) {
+        GameConstants.GameColor pieceColor = knight.PieceColor();
+        List<Move> validMoves = new List<Move>();
+        BoardPosition pos = knight.GetPosition();
+
+        // For all potential moves - if square is empty or enemy piece is there it is a valid move
+        foreach (BoardPosition candidatePos in knight.CandidateSquares()) {
+            Piece pieceAtTargetSquare = board.PieceAt(candidatePos);
+            if (pieceAtTargetSquare == null || pieceAtTargetSquare.PieceColor() != pieceColor) {
+                validMoves.Add(new Move(pos, candidatePos));
+            }
+        }
+        return validMoves;
     }
 
     /* TODO: Difference between notion of NoPiece and null? Might have issues with pieces leaving the board otherwise. */
@@ -51,33 +71,21 @@ public class MoveGenerator {
     private List<Move> ValidPawnMoves(Pawn pawn, Board board) {
         List<Move> validMoves = new List<Move>();
         BoardPosition pos = pawn.GetPosition();
-        BoardPosition infront = pawn.PieceColor() == GameConstants.GameColor.White
-            ? new BoardPosition(pos.file + 1, pos.rank)
-            : new BoardPosition(pos.file - 1, pos.rank);
 
-        //Debug.Log("Looking for valid pawn moves");
-        //Debug.Log("Pos: " + pos);
-        //Debug.Log("Infront: " + infront);
-
-        // If the square infront of the pawn in empty
-        if (board.PieceAt(infront) == null) {
-            validMoves.Add(new Move(pos, infront));
-            //Debug.Log("Adding valid move");
+        // Movement of pawn
+        foreach (BoardPosition candidatePos in pawn.CandidateSquares()) {
+            if (board.PieceAt(candidatePos) == null) {
+                validMoves.Add(new Move(pos, candidatePos));
+            }
         }
 
-        // If pawn hasn't moved, we can move twice
-        if (!pawn.HasMoved) {
-            BoardPosition twoInfront = pawn.PieceColor() == GameConstants.GameColor.White
-                ? new BoardPosition(pos.file + 2, pos.rank)
-                : new BoardPosition(pos.file - 2, pos.rank);
-
-            if (board.PieceAt(twoInfront) == null) {
-                validMoves.Add(new Move(pos, twoInfront));
+        // Capture of piece
+        foreach (BoardPosition candidateCapture in pawn.CandidateCaptureSquares()) {
+            if (board.PieceAt(candidateCapture) != null) {
+                validMoves.Add(new Move(pos, candidateCapture));
             }
-
         }
 
         return validMoves;
     }
-
 }

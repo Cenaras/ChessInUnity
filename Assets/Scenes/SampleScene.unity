@@ -249,7 +249,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 2
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1304094376
 GameObject:
@@ -280,6 +280,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c524e629d5f1cb74f971d16cba1f9403, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  boardTheme: {fileID: 11400000, guid: 0c08b908cd89843489b3b91c0473eac7, type: 2}
 --- !u!4 &1304094378
 Transform:
   m_ObjectHideFlags: 0
@@ -293,5 +294,5 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 1
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}

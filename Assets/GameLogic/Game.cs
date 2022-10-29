@@ -21,6 +21,7 @@ public class Game : MonoBehaviour
         // When the onMovePlaced action is triggered, call the HandleOnMovePlaced function is called. This listens for the GameEvents.onMovePlaced event...
         boardUI = FindObjectOfType<BoardUI>();
         StartNewGame(DEFAULT_STARTING_POSITION);
+        boardUI.UpdatePosition(board);
     }
 
     // Update is called once per frame
@@ -29,8 +30,8 @@ public class Game : MonoBehaviour
         // Maybe rename to Update if we do more. 
         // 
         bool moveMade = playerToMove.TryGenerateMove();
-        boardUI.UpdatePosition(board);
         if (moveMade) {
+            boardUI.UpdatePosition(board);
             // TODO: Only update when move is made - but for some reason our render doesn't load then...
             playerToMove = (playerToMove.Equals(whitePlayer)) ? blackPlayer : whitePlayer;
         }

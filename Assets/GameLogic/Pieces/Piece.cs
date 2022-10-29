@@ -20,6 +20,11 @@ public interface Piece
     public Sprite sprite() {
         return GameConstants.GetPieceSprite(this);
     }
-
+    // Maybe let the pieces compute their movement directions - only let the MoveGen check if they're valid?
+    public List<BoardPosition> CandidateSquares();
+    public static void AddIfValid(List<BoardPosition> listOfPos, BoardPosition position) {
+        if (position.IsValidPosition())
+            listOfPos.Add(position);
+    }
 
 }

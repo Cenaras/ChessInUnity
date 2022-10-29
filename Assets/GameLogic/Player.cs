@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Numerics;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
@@ -92,25 +93,32 @@ public class Player : PlayerStrategy {
         // TODO: Fix drag animation when piece hits previously occupied square.
         //boardUI.DragPieceAnim(fromSquare, cam.ScreenToWorldPoint(Input.mousePosition));
 
+        // Bad since computing all valid moves in loop - move somewhere outside of the loop
+        Piece heldPiece = board.PieceAt(fromSquare);
+        List<Move> validMoves = board.moveGen.GenerateValidMoves(board);
+        boardUI.HighlightValidSquares(heldPiece, validMoves);
+
         if (Input.GetMouseButtonUp(0)) {
             BoardPosition targetSquare = BoardPosFromMouse();
+           
+
             Move tryingMove = new Move(fromSquare, targetSquare);
-            return HandlePiecePlacement(tryingMove);
+            return HandlePiecePlacement(tryingMove, validMoves);
         }
         return false;
     }
 
-    bool HandlePiecePlacement(Move tryingMove) {
+    bool HandlePiecePlacement(Move tryingMove, List<Move> validMoves) {
+        bool moveMade = false;
         if (movingPhase == MovingActionPhase.PIECE_DRAGGED) {
             movingPhase = MovingActionPhase.NO_ACTION;
-            bool moveMade = board.TryMakeMove(color, tryingMove);
+            moveMade = board.TryMakeMove(color, tryingMove, validMoves);
             if (!moveMade) {
                 CancelPieceSelection();
             }
-
-            return moveMade;
         }
-        return false;
+        boardUI.ResetHighlightedSquare();
+        return moveMade;
     }
 
     void CancelPieceSelection() {
@@ -118,6 +126,7 @@ public class Player : PlayerStrategy {
         // Maybe this gets called on all clicks also? There's a lot of clean up to do in this project if you ever feel like it.
         //Debug.Log("Resetting square " + selectedSquare);
         boardUI.ResetPiecePosition(selectedSquare);
+        
 
     }
 
