@@ -95,7 +95,7 @@ public class Player : PlayerStrategy {
 
         // Bad since computing all valid moves in loop - move somewhere outside of the loop
         Piece heldPiece = board.PieceAt(fromSquare);
-        List<Move> validMoves = board.moveGen.GenerateValidMoves(board);
+        List<Move> validMoves = board.moveGen.GenerateValidMoves(heldPiece, board);
         boardUI.HighlightValidSquares(heldPiece, validMoves);
 
         if (Input.GetMouseButtonUp(0)) {

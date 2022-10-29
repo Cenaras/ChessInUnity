@@ -5,6 +5,13 @@ public class Bishop : Piece {
     private GameConstants.GameColor color;
     private BoardPosition position;
 
+    private static List<BoardPosition> directionOffset = new List<BoardPosition> {
+        new BoardPosition(-1, -1),
+        new BoardPosition(1, -1),
+        new BoardPosition(-1, 1),
+        new BoardPosition(1, 1),
+    };
+
 
     public Bishop(GameConstants.GameColor pieceColor, BoardPosition startingPosition) {
         color = pieceColor;
@@ -29,6 +36,22 @@ public class Bishop : Piece {
     }
 
     public List<BoardPosition> CandidateSquares() {
-        throw new System.NotImplementedException();
+        List<BoardPosition> candidatePositions = new List<BoardPosition>();
+
+        // Loop over all possible distances
+        for (int distance = -7; distance < 8; distance++) {
+            // Exclude move to own square
+            if (distance != 0) {
+                foreach (BoardPosition direction in directionOffset) {
+                    // Take every direction offset (i.e. diagonal) and get every length of it and add it to the current position.
+                    BoardPosition candidatePos = BoardPosition.Add(position, BoardPosition.ScalarMult(direction, distance));
+                    Piece.AddPositionIfValid(candidatePositions, candidatePos);
+                }
+            }
+            
+        }
+
+
+        return candidatePositions;
     }
 }

@@ -25,6 +25,19 @@ public record BoardPosition(int file, int rank) {
     public static BoardPosition Add(BoardPosition left, BoardPosition right) {
         return new BoardPosition(left.file + right.file, left.rank + right.rank);
     }
+
+    public static BoardPosition ScalarAdd(BoardPosition pos, int scalar) {
+        return new BoardPosition(pos.file + scalar, pos.rank + scalar);
+
+    }
+
+    public static BoardPosition ScalarMult(BoardPosition pos, int scalar) {
+        return new BoardPosition(pos.file * scalar, pos.rank * scalar);
+    }
+
+    public static bool Equals(BoardPosition one, BoardPosition two) {
+        return (one.file == two.file) && (one.rank == two.rank);
+    }
     
 
 
@@ -154,12 +167,12 @@ public class Board {
     }
 
     private void PlacePieceAt(BoardPosition position, Piece piece) {
-        Debug.Log("Placing piece at " + position);
+        //Debug.Log("Placing piece at " + position);
         pieces[position.file, position.rank] = piece;
     }
 
     private void ClearPositionAt(BoardPosition position) {
-        Debug.Log("Clearing piece at position " + position);
+        //Debug.Log("Clearing piece at position " + position);
         pieces[position.file, position.rank] = null;
     }
 

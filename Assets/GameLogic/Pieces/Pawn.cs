@@ -84,8 +84,8 @@ public class Pawn : Piece {
             ? new BoardPosition(position.file + 1, position.rank + 1)
             : new BoardPosition(position.file - 1, position.rank - 1);
 
-        Piece.AddIfValid(candidatePositions, captureLeft);
-        Piece.AddIfValid(candidatePositions, captureRight);
+        Piece.AddPositionIfValid(candidatePositions, captureLeft);
+        Piece.AddPositionIfValid(candidatePositions, captureRight);
 
         return candidatePositions;
     }

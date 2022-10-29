@@ -42,7 +42,7 @@ public class Knight : Piece {
         List<BoardPosition> candidatePositions = new List<BoardPosition>();
         foreach (BoardPosition candMove in knightMoves) {
             BoardPosition targetSquare = BoardPosition.Add(position, candMove);
-            Piece.AddIfValid(candidatePositions, targetSquare);
+            Piece.AddPositionIfValid(candidatePositions, targetSquare);
         }
 
         return candidatePositions;

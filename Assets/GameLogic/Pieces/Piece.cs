@@ -22,7 +22,7 @@ public interface Piece
     }
     // Maybe let the pieces compute their movement directions - only let the MoveGen check if they're valid?
     public List<BoardPosition> CandidateSquares();
-    public static void AddIfValid(List<BoardPosition> listOfPos, BoardPosition position) {
+    public static void AddPositionIfValid(List<BoardPosition> listOfPos, BoardPosition position) {
         if (position.IsValidPosition())
             listOfPos.Add(position);
     }
