@@ -122,6 +122,10 @@ public class Board {
     public bool TryMakeMove(GameConstants.GameColor playerColor, Move move, List<Move> validMoves) {
         Piece movingPiece = PieceAt(move.From);
 
+        if (movingPiece == null) {
+            Debug.Log("Moving piece is null");
+        }
+
         if (movingPiece.GetPieceType() == Piece.PieceType.King) {
             Debug.Log("Holding King");
             Debug.Log("Move is: " + move.From + ", " + move.To + ": " + move.Type);
