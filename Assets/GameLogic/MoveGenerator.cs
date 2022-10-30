@@ -23,40 +23,93 @@ public class MoveGenerator {
      */
 
     private List<Move> GenerateValidMovesForPiece(Piece piece, Board board) {
-        if (piece.GetPieceType() == Piece.PieceType.Pawn) {
+        Piece.PieceType type = piece.GetPieceType();
+        if (type == Piece.PieceType.Pawn)
             return ValidPawnMoves(piece as Pawn, board);
-        }
-        if (piece.GetPieceType() == Piece.PieceType.Knight) {
+        if (type == Piece.PieceType.Knight)
             return ValidKnightMoves(piece as Knight, board);
-        }
-        if (piece.GetPieceType() == Piece.PieceType.Bishop) {
-            return ValidBishopMoves(piece as Bishop, board);
-        }
-        if (piece.GetPieceType() == Piece.PieceType.Rook) {
-            return ValidRookMoves(piece as Rook, board);
-        }
+        if (type == Piece.PieceType.Rook || type == Piece.PieceType.Bishop || type == Piece.PieceType.Queen)
+            return ValidSlidingPieceMoves(piece, board);
+        if (type == Piece.PieceType.King)
+            return ValidKingMoves(piece as King, board);
+
         return new List<Move>();
     }
 
-    /* TODO: Filter if squares are blocked */
-    private List<Move> ValidBishopMoves(Bishop bishop, Board board) {
-        BoardPosition piecePos = bishop.GetPosition();
-        List<BoardPosition> candidateSquares = bishop.CandidateSquares();
-
-        // This is wrong
+    private List<Move> ValidKingMoves(King king, Board board) {
         List<Move> validMoves = new List<Move>();
-        foreach (BoardPosition pos in candidateSquares) {
-            bool visible = IsSquareVisibleFrom(piecePos, pos, board, bishop.PieceColor());
-            //Debug.Log("Visible for " + pos + ": " + visible);
-            if (IsSquareVisibleFrom(piecePos, pos, board, bishop.PieceColor())) {
-                validMoves.Add(new Move(piecePos, pos));
-            }
+        BoardPosition piecePos = king.GetPosition();
+        GameConstants.GameColor pieceColor = king.PieceColor();
+
+        foreach (BoardPosition candidateMove in king.CandidateSquares()) {
+            Piece piece = board.PieceAt(candidateMove);
+            bool emptySquare = piece == null;
+            bool sameColorOnSquare = !emptySquare && piece.PieceColor() == pieceColor;
+            if (emptySquare || !sameColorOnSquare)
+                validMoves.Add(new Move(piecePos, candidateMove));
         }
 
+        // Check for castling
+        (bool, bool) castleInformation = CanCastle(king, board);
+        Debug.Log("Castle information: " + castleInformation);
+        if (castleInformation.Item1)
+            validMoves.Add(new Move(piecePos, king.QueenSideCastlePosition(), Move.MoveType.QueenCastle));
+        if (castleInformation.Item2)
+            validMoves.Add(new Move(piecePos, king.KingSideCastlePosition(), Move.MoveType.KingCastle));
 
         return validMoves;
+
     }
 
+
+    /** (QueenSide, KingSide) */
+    private (bool, bool) CanCastle(King king, Board board) {
+        bool canCastleQueenSide = false;
+        bool canCastleKingSide = false;
+        BoardPosition kingPos = king.GetPosition();
+
+        if (king.HasMoved) {
+            Debug.Log("King moved");
+            return (false, false);
+        }
+
+        GameConstants.GameColor kingColor = king.PieceColor();
+        if (kingColor == GameConstants.GameColor.White) {
+            canCastleKingSide = CanCastleTo(kingPos, king.KingSideCastlePosition(), new BoardPosition(7,0), kingColor, board);
+            canCastleQueenSide = CanCastleTo(kingPos, king.QueenSideCastlePosition(), new BoardPosition(0, 0), kingColor, board);
+        } else {
+            canCastleKingSide = CanCastleTo(kingPos, king.KingSideCastlePosition(), new BoardPosition(7, 7), kingColor, board);
+            canCastleQueenSide = CanCastleTo(kingPos, king.QueenSideCastlePosition(), new BoardPosition(0, 7), kingColor, board);
+        }
+
+        return (canCastleQueenSide, canCastleKingSide);
+    }
+
+    private bool CanCastleTo(BoardPosition kingPos, BoardPosition toSquare, BoardPosition rookPosition, GameConstants.GameColor kingColor, Board board) {
+
+        if (IsSquareVisibleFrom(kingPos, toSquare, board, kingColor)) {
+
+            Piece rookPiece = board.PieceAt(rookPosition);
+            if (rookPiece.GetPieceType() == Piece.PieceType.Rook) {
+                if (!(rookPiece as Rook).HasMoved && rookPiece.PieceColor() == kingColor) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    
+    }
+
+    private List<Move> ValidSlidingPieceMoves(Piece piece, Board board) {
+        BoardPosition piecePos = piece.GetPosition();
+        List<BoardPosition> candidateSquares = piece.CandidateSquares();
+        List<Move> validMoves = new List<Move>();
+        foreach (BoardPosition pos in candidateSquares) {
+            if (IsSquareVisibleFrom(piecePos, pos, board, piece.PieceColor()))
+                validMoves.Add(new Move(piecePos, pos));
+        }
+        return validMoves;
+    }
 
     private List<Move> ValidKnightMoves(Knight knight, Board board) {
         GameConstants.GameColor pieceColor = knight.PieceColor();
@@ -71,15 +124,6 @@ public class MoveGenerator {
             }
         }
         return validMoves;
-    }
-
-    private List<Move> ValidRookMoves(Rook rook, Board board) {
-        List<Move> validMoves = new List<Move>();
-        BoardPosition pos = rook.GetPosition();
-        //foreach (BoardPosition candidate in rook.CandidateSquares())
-
-
-        return new List<Move>();
     }
 
     /* TODO: Difference between notion of NoPiece and null? Might have issues with pieces leaving the board otherwise. */
@@ -110,8 +154,21 @@ public class MoveGenerator {
     private BoardPosition DirectionOfPiece(BoardPosition piecePosition, BoardPosition targetSquare) {
         bool forward = targetSquare.file > piecePosition.file;
         bool right = targetSquare.rank > piecePosition.rank;
+        bool stillForward = targetSquare.file == piecePosition.file;
+        bool stillRight = targetSquare.rank == piecePosition.rank;
 
-
+        if (stillForward && right) {
+            return new BoardPosition(0, 1);
+        }
+        if (stillForward && !right) {
+            return new BoardPosition(0, -1);
+        }
+        if (forward && stillRight) {
+            return new BoardPosition(1, 0);
+        }
+        if (!forward && stillRight) {
+            return new BoardPosition(-1, 0);
+        }
         if (forward && right) {
             return new BoardPosition(1, 1);
         }
@@ -127,26 +184,29 @@ public class MoveGenerator {
 
 
     /** Use this to determine if a square is visible given start and direction - return false if a piece blocks squares in the direction */
-    private bool IsSquareVisibleFrom(BoardPosition start, BoardPosition target, Board board, GameConstants.GameColor color) {
-
-        // TODO: Compute the direction vector. Figure out if a piece is present. Remove everything after the piece on the vector. Profit.
+    private bool IsSquareVisibleFrom(BoardPosition start, BoardPosition target, Board board, GameConstants.GameColor color) {        
         List<BoardPosition> visibleSquares = new List<BoardPosition>();
         BoardPosition direction = DirectionOfPiece(start, target);
+
+        Debug.Log("Start; " + start);
+        Debug.Log("Target; " + target);
+        Debug.Log("Direction: " + direction);
+
 
         // Compute all squares in the direction:
         List<BoardPosition> posInDirection = new List<BoardPosition>();
         for(int i = 0; i < 8; i++) {
             BoardPosition pos = BoardPosition.Add(start, BoardPosition.ScalarMult(direction, i));
-            Debug.Log("A position in the direction: " + pos);
+            //Debug.Log("A position in the direction: " + pos);
             Piece.AddPositionIfValid(posInDirection, pos);
         }
 
         // Loop over all squares - if one is occupied, break from loop - else add the square - exlude own square
         for (int i = 1; i < posInDirection.Count; i++) {
             BoardPosition possiblePos = posInDirection[i];
-            Debug.Log("Looking at possible pos " + possiblePos);
+            //Debug.Log("Looking at possible pos " + possiblePos);
             Piece piece = board.PieceAt(possiblePos);
-            // If a piece is there, add it and break. //TODO: Own vs enemy piece.
+            // If a piece is there, add it and break.
             if (piece != null) {
                 // If piece is enemy, allow for capture
                 if (piece.PieceColor() != color) {

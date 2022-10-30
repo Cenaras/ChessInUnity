@@ -6,6 +6,7 @@ using UnityEngine;
 using Unity.VisualScripting;
 using System.Runtime.CompilerServices;
 using UnityEngine.PlayerLoop;
+using System.Text;
 
 // Magic for records to work
 namespace System.Runtime.CompilerServices {
@@ -19,7 +20,7 @@ public record BoardPosition(int file, int rank) {
     }
 
     public override string ToString() {
-        return $"[{rank}, {file}]";
+        return $"[{file}, {rank}]";
     }
 
     public static BoardPosition Add(BoardPosition left, BoardPosition right) {
@@ -38,7 +39,7 @@ public record BoardPosition(int file, int rank) {
     public static bool Equals(BoardPosition one, BoardPosition two) {
         return (one.file == two.file) && (one.rank == two.rank);
     }
-    
+
 
 
 }
@@ -93,8 +94,7 @@ public class Board {
                     //Debug.Log($"Placing piece {pieceType} at position {i}, {file}, white: {isWhite}");
                     GameConstants.GameColor pieceColor = isWhite ? GameConstants.GameColor.White : GameConstants.GameColor.Black;
 
-
-                    BoardPosition posOnBoard = new BoardPosition(7 - i, file);
+                    BoardPosition posOnBoard = new BoardPosition(file, 7 - i);
 
                     Piece piece = pieceType switch {
                         Piece.PieceType.Pawn => new Pawn(pieceColor, posOnBoard),
@@ -106,7 +106,8 @@ public class Board {
                         _ => throw new Exception("Impossible")
                     };
 
-                    pieces[7 - i, file] = piece;
+                    pieces[file, 7 - i] = piece;
+
                     file++;
                 }
             }
@@ -117,25 +118,16 @@ public class Board {
 
     /** Returns true if the move was made */
     public bool TryMakeMove(GameConstants.GameColor playerColor, Move move, List<Move> validMoves) {
-        /*
-        How a move works:
-        We get the piece.
-        We inspect the valid moves from the piece
-        We ensure the target position is valid
-        We place the piece
-         */
+        Piece movingPiece = PieceAt(move.From);
 
-        // For now; brute force piece to position
-
-        // Moving a piece to its own location is not valid.
-        //if (from.Equals(to)) return false;
-
-
-        Piece movingPiece = PieceAt(move.from);
+        if (movingPiece.GetPieceType() == Piece.PieceType.King) {
+            Debug.Log("Holding King");
+            Debug.Log("Move is: " + move.From + ", " + move.To + ": " + move.Type);
+        }
 
         // Only move the piece if it exists and is from the right player
         if (movingPiece == null || movingPiece.PieceColor() != playerColor) {
-            Debug.Log("Cannot move - wrong color or no piece");
+            //Debug.Log("Cannot move - wrong color or no piece");
             return false;
         }
 
@@ -144,14 +136,54 @@ public class Board {
             return false;
         }
 
-        MovePiece(movingPiece, move.from, move.to);
-        movingPiece.SetPosition(move.to);
+        MovePiece(movingPiece, move.From, move.To);
+        movingPiece.SetPosition(move.To);
         // If pawn move, mark as HasMoved.
-        if (movingPiece.GetPieceType()  == Piece.PieceType.Pawn) {
+        if (movingPiece.GetPieceType() == Piece.PieceType.Pawn) {
             (movingPiece as Pawn).HasMoved = true;
         }
+        if (movingPiece.GetPieceType() == Piece.PieceType.King) {
+            (movingPiece as King).HasMoved = true;
+        }
+        if (movingPiece.GetPieceType() == Piece.PieceType.Rook) {
+            (movingPiece as Rook).HasMoved = true;
+        }
+
+        // Check if move was a castle, and if it was, move the rook...
+        if (move.Type == Move.MoveType.QueenCastle || move.Type == Move.MoveType.KingCastle) {
+            MoveRookForCastle(movingPiece as King, move.Type);
+        }
+
+
         SwapTurn();
         return true;
+    }
+
+    private void MoveRookForCastle(King king, Move.MoveType castleType) {
+        BoardPosition kingPos = king.GetPosition();
+        switch (king.PieceColor()) {
+            case GameConstants.GameColor.White: {
+                    if (castleType == Move.MoveType.QueenCastle) {
+                        MoveRookForCastle(GameConstants.WhiteQueenRookStartPos, new BoardPosition(3, 0));
+                    } else {
+                        MoveRookForCastle(GameConstants.WhiteKingRookStartPos, new BoardPosition(5, 0));
+                    }
+                    break;
+                }
+            case GameConstants.GameColor.Black: {
+                    if (castleType == Move.MoveType.QueenCastle) {
+                        MoveRookForCastle(GameConstants.BlackQueenRookStartPos, new BoardPosition(3, 7));
+                    } else {
+                        MoveRookForCastle(GameConstants.BlackKingRookStartPos, new BoardPosition(5, 7));
+                    }
+                    break;
+                }
+        }
+    }
+
+    private void MoveRookForCastle(BoardPosition rookStartPos, BoardPosition targetPos) {
+        Piece rook = PieceAt(rookStartPos);
+        MovePiece(rook, rookStartPos, targetPos);
     }
 
 
@@ -162,18 +194,31 @@ public class Board {
 
 
     public Piece PieceAt(BoardPosition position) {
-        //Debug.Log("Position: " + position);
         return pieces[position.file, position.rank];
     }
 
     private void PlacePieceAt(BoardPosition position, Piece piece) {
-        //Debug.Log("Placing piece at " + position);
         pieces[position.file, position.rank] = piece;
     }
 
     private void ClearPositionAt(BoardPosition position) {
-        //Debug.Log("Clearing piece at position " + position);
         pieces[position.file, position.rank] = null;
     }
 
+    public void PrintBoard() {
+        StringBuilder builder = new StringBuilder();
+        for (int rank = 7; rank >= 0; rank--) {
+            for (int file = 0; file < 8; file++) {
+                Piece piece = PieceAt(new BoardPosition(file, rank));
+                if (piece != null) {
+                    builder.Append(piece.GetPieceType()).Append(" ");
+                } else {
+                    builder.Append(" X ");
+                }
+            }
+            builder.AppendLine("");
+        }
+
+        Debug.Log(builder.ToString());
+    }
 }

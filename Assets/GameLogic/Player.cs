@@ -100,9 +100,16 @@ public class Player : PlayerStrategy {
 
         if (Input.GetMouseButtonUp(0)) {
             BoardPosition targetSquare = BoardPosFromMouse();
-           
+            Move tryingMove;
 
-            Move tryingMove = new Move(fromSquare, targetSquare);
+            /* Mark move as castle move if it is. */
+            if (Move.IsCastleQueenSideMove(fromSquare, targetSquare)) {
+                tryingMove = new Move(fromSquare, targetSquare, Move.MoveType.QueenCastle);
+            } else if (Move.IsCastleKingSideMove(fromSquare, targetSquare)) {
+                tryingMove = new Move(fromSquare, targetSquare, Move.MoveType.KingCastle);
+            } else {
+                tryingMove = new Move(fromSquare, targetSquare);
+            }
             return HandlePiecePlacement(tryingMove, validMoves);
         }
         return false;
@@ -133,8 +140,10 @@ public class Player : PlayerStrategy {
     BoardPosition BoardPosFromMouse() {
         Vector2 mousePosRaw = cam.ScreenToWorldPoint(Input.mousePosition);
         Vector2 mousePos = mousePosRaw + offset;
-        // Get the position on the board. y is first, since first index describes rank which effectively is the "y" coordinate on the board
-        return new BoardPosition((int)Math.Floor(mousePos.y), (int)Math.Floor(mousePos.x));
+        // Get the position on the board. 
+        BoardPosition test = new BoardPosition((int)Math.Floor(mousePos.x), (int)Math.Floor(mousePos.y));
+        Debug.Log("BoardPosFromMouse: " + test);
+        return new BoardPosition((int)Math.Floor(mousePos.x), (int)Math.Floor(mousePos.y));
     }
 
 

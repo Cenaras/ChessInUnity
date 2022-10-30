@@ -22,6 +22,7 @@ public class Game : MonoBehaviour
         boardUI = FindObjectOfType<BoardUI>();
         StartNewGame(DEFAULT_STARTING_POSITION);
         boardUI.UpdatePosition(board);
+        board.PrintBoard();
     }
 
     // Update is called once per frame

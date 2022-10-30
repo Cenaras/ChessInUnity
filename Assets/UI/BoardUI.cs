@@ -10,11 +10,8 @@ public class BoardUI : MonoBehaviour {
     // Assigned from the Inspector
     public BoardTheme boardTheme;
 
-    //private static Color whiteColor = new Color(0.961f, 0.784f, 0.784f, 1);
-    //private static Color blackColor = new Color(0.961f, 0.519f, 0.519f, 1);
-    private static Color highlightColor = new Color(0.29f,0,0.14f,0.0f);
 
-    SpriteRenderer[,] pieceRenderers = new SpriteRenderer[8,8];
+    SpriteRenderer[,] pieceRenderers = new SpriteRenderer[8, 8];
     MeshRenderer[,] squareRenderers;
     // Start is called before the first frame update
     void Awake() {
@@ -28,9 +25,6 @@ public class BoardUI : MonoBehaviour {
         squareRenderers = new MeshRenderer[8, 8];
         Shader shader = Shader.Find("Unlit/Color");
 
-        //pieceRenderers = new SpriteRenderer[8, 8];
-
-        //Debug.Log("Generated piece renderers");
 
         for (int rank = 0; rank < 8; rank++) {
             for (int file = 0; file < 8; file++) {
@@ -39,13 +33,10 @@ public class BoardUI : MonoBehaviour {
                 // Set sqaure as child of the BoardUIObject
                 square.parent = transform;
 
-                // Testing stuff
-                square.position = new Vector2(rank, file);
-
+                square.position = new Vector2(file, rank);
 
                 // Get the current renderer, and set it to the renderer for the square.
                 MeshRenderer squareRenderer = square.GetComponent<MeshRenderer>();
-                // Create new material for square
 
                 squareRenderer.material = new Material(shader);
                 if ((file + rank) % 2 != 0) {
@@ -58,7 +49,8 @@ public class BoardUI : MonoBehaviour {
                 SpriteRenderer pieceRenderer = new GameObject("PieceObject").AddComponent<SpriteRenderer>();
                 pieceRenderer.transform.parent = transform;
                 pieceRenderer.transform.localScale = Vector3.one * 2f;
-                pieceRenderer.transform.position = new Vector2(rank, file);
+                pieceRenderer.transform.position = new Vector2(file, rank);
+
 
                 // Use the generated GameObjectRenderer in the list of renderers
                 pieceRenderers[file, rank] = pieceRenderer;
@@ -93,17 +85,17 @@ public class BoardUI : MonoBehaviour {
     }
 
     public void ResetPiecePosition(BoardPosition originalPiecePosition) {
-        pieceRenderers[originalPiecePosition.file, originalPiecePosition.rank].transform.position = 
+        pieceRenderers[originalPiecePosition.file, originalPiecePosition.rank].transform.position =
             new Vector2(
-                originalPiecePosition.rank,
-                originalPiecePosition.file);
+                originalPiecePosition.file,
+                originalPiecePosition.rank);
     }
 
 
     public void HighlightValidSquares(Piece piece, List<Move> validMoves) {
         foreach (Move move in validMoves) {
-            if (piece.GetPosition().Equals(move.from)) {
-                squareRenderers[move.to.file, move.to.rank].material.color = boardTheme.highlightSquareColor;
+            if (piece.GetPosition().Equals(move.From)) {
+                squareRenderers[move.To.file, move.To.rank].material.color = boardTheme.highlightSquareColor;
             }
         }
     }
@@ -113,7 +105,7 @@ public class BoardUI : MonoBehaviour {
         for (int rank = 0; rank < 8; rank++) {
             for (int file = 0; file < 8; file++) {
                 Material square = squareRenderers[file, rank].material;
-                if ((file+rank) % 2 != 0) {
+                if ((file + rank) % 2 != 0) {
                     square.color = boardTheme.whiteSquareColor;
                 } else {
                     square.color = boardTheme.blackSquareColor;

@@ -27,7 +27,7 @@ public class Bishop : Piece {
         return color;
     }
 
-        public BoardPosition GetPosition() {
+    public BoardPosition GetPosition() {
         return position;
     }
 
@@ -39,19 +39,13 @@ public class Bishop : Piece {
         List<BoardPosition> candidatePositions = new List<BoardPosition>();
 
         // Loop over all possible distances
-        for (int distance = -7; distance < 8; distance++) {
-            // Exclude move to own square
-            if (distance != 0) {
-                foreach (BoardPosition direction in directionOffset) {
-                    // Take every direction offset (i.e. diagonal) and get every length of it and add it to the current position.
-                    BoardPosition candidatePos = BoardPosition.Add(position, BoardPosition.ScalarMult(direction, distance));
-                    Piece.AddPositionIfValid(candidatePositions, candidatePos);
-                }
+        for (int distance = 1; distance < 8; distance++) {
+            foreach (BoardPosition direction in directionOffset) {
+                // Take every direction offset (i.e. diagonal) and get every length of it and add it to the current position.
+                BoardPosition candidatePos = BoardPosition.Add(position, BoardPosition.ScalarMult(direction, distance));
+                Piece.AddPositionIfValid(candidatePositions, candidatePos);
             }
-            
         }
-
-
         return candidatePositions;
     }
 }
