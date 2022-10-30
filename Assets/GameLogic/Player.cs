@@ -80,20 +80,15 @@ public class Player : PlayerStrategy {
 
     void HandlePieceSelection(BoardPosition clickedPosition) {
         if (Input.GetMouseButtonDown(0)) {
-            //BoardPosition clickedPosition = BoardPosFromMouse();
 
-            // Get the piece we clicked and mark as dragging piece
-            //selectedSquare = clickedPosition;
-            // currentState = InputState.PieceDragged;
-
-            // Compute valid moves for selected piece
-            Debug.Log("Clicking at position: " + clickedPosition);
+            // Compute valid moves for selected piece and mark as dragging piece
             Piece selectedPiece = board.PieceAt(clickedPosition);
             if (selectedPiece != null) {
                 List<Move> validMoves = board.moveGen.GenerateValidMoves(selectedPiece, board);
                 boardUI.HighlightValidSquares(selectedPiece, validMoves);
                 currentState = InputState.PieceDragged;
             }
+            // Mark selected square as where we clicked
             selectedSquare = clickedPosition;
 
         }
@@ -102,47 +97,13 @@ public class Player : PlayerStrategy {
     bool HandleDragMovement(BoardPosition targetSquare) {
 
         if (Input.GetMouseButtonUp(0)) {
-            //Debug.Log("###HandleDragMovement### FromSquare: " + fromSquare);
-            //BoardPosition targetSquare = BoardPosFromMouse();
             return HandlePiecePlacement(selectedSquare, targetSquare);
         }
         return false;
-
-
-        /*
-
-        BoardPosition fromSquare = selectedSquare;
-        // TODO: Fix drag animation when piece hits previously occupied square.
-        //boardUI.DragPieceAnim(fromSquare, cam.ScreenToWorldPoint(Input.mousePosition));
-
-        // Bad since computing all valid moves in loop - move somewhere outside of the loop
-
-        Piece heldPiece = board.PieceAt(fromSquare);
-        List<Move> validMoves = board.moveGen.GenerateValidMoves(heldPiece, board);
-        boardUI.HighlightValidSquares(heldPiece, validMoves);
-
-        if (Input.GetMouseButtonUp(0)) {
-            BoardPosition targetSquare = BoardPosFromMouse();
-            Move tryingMove;
-
-            // Mark move as castle move if it is. 
-            if (Move.IsCastleQueenSideMove(fromSquare, targetSquare)) {
-                tryingMove = new Move(fromSquare, targetSquare, Move.MoveType.QueenCastle);
-            } else if (Move.IsCastleKingSideMove(fromSquare, targetSquare)) {
-                tryingMove = new Move(fromSquare, targetSquare, Move.MoveType.KingCastle);
-            } else {
-                tryingMove = new Move(fromSquare, targetSquare);
-            }
-            return HandlePiecePlacement(tryingMove, validMoves);
-        }
-        return false; */
     }
 
     private bool HandlePiecePlacement(BoardPosition fromSquare, BoardPosition targetSquare) {
         Piece heldPiece = board.PieceAt(fromSquare);
-
-        Debug.Log("FromSquare: " + fromSquare + ", ToSquare: " + targetSquare);
-
         List<Move> validMoves = board.moveGen.GenerateValidMoves(heldPiece, board);
         Move tryingMove;
         
@@ -166,19 +127,6 @@ public class Player : PlayerStrategy {
 
     }
 
-    /*bool HandlePiecePlacement(Move tryingMove, List<Move> validMoves) {
-        bool moveMade = false;
-        if (currentState == InputState.PieceDragged) {
-            currentState = InputState.None;
-            moveMade = board.TryMakeMove(color, tryingMove, validMoves);
-            if (!moveMade) {
-                CancelPieceSelection();
-            }
-        }
-        boardUI.ResetHighlightedSquare();
-        return moveMade;
-    }*/
-
     void CancelPieceSelection() {
         currentState = InputState.None;
         // Maybe this gets called on all clicks also? There's a lot of clean up to do in this project if you ever feel like it.
@@ -190,7 +138,6 @@ public class Player : PlayerStrategy {
         Vector2 mousePosRaw = cam.ScreenToWorldPoint(Input.mousePosition);
         Vector2 mousePos = mousePosRaw + offset;
         // Get the position on the board. 
-        BoardPosition test = new BoardPosition((int)Math.Floor(mousePos.x), (int)Math.Floor(mousePos.y));
         return new BoardPosition((int)Math.Floor(mousePos.x), (int)Math.Floor(mousePos.y));
     }
 

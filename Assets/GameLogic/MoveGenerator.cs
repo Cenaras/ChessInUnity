@@ -6,12 +6,18 @@ using UnityEngine;
 
 public class MoveGenerator {
     public List<Move> GenerateValidMoves(Piece piece, Board board) {
-        Debug.Log("ONLY CALL ME ONCE PR TURN!!!");
+        List<Move> pseudoLegalMoves = new List<Move>();
         if (piece != null) {
-            return GenerateValidMovesForPiece(piece, board);
+            pseudoLegalMoves = GenerateValidMovesForPiece(piece, board);
         }
-        return new List<Move>();
+        return FilterNonLegalMoves(pseudoLegalMoves, board);
     }
+
+    /* TODO: Filter the non legal moves somehow in a pretty way. */
+    private List<Move> FilterNonLegalMoves(List<Move> pseudoLegalMoves, Board board) {
+        return pseudoLegalMoves;
+    }
+
 
     /* TODO:
         - is the piece pinned?
@@ -21,10 +27,6 @@ public class MoveGenerator {
      */
 
     private List<Move> GenerateValidMovesForPiece(Piece piece, Board board) {
-        // Testing some stuff
-        //IsKingAttacked(board, piece.PieceColor());
-
-
         Piece.PieceType type = piece.GetPieceType();
         if (type == Piece.PieceType.Pawn)
             return ValidPawnMoves(piece as Pawn, board);
@@ -221,45 +223,4 @@ public class MoveGenerator {
         }
         return false;
     }
-
-
-
-    /** Checks if the king with specified kingColor is under attack */
-    private bool IsKingAttacked(Board board, GameConstants.GameColor kingColor) {
-
-        Piece lastMovedPiece = board.LastMovedPiece;
-        King king = FindKing(board, kingColor);
-        BoardPosition kingPosition = king.GetPosition();
-
-        List<Move> attackingMoves = GenerateValidMoves(lastMovedPiece, board);
-        // Filter moves to get target squares - check if it equals the king pos...
-        bool any = attackingMoves.Select(x => BoardPosition.Equals(x.To, kingPosition)).Any();
-
-        if (any)
-            Debug.Log("ATTACKING KING");
-
-        return any;
-    }
-
-
-    private King FindKing(Board board, GameConstants.GameColor kingColor) {
-        for (int rank = 0; rank < 8; rank++) {
-            for (int file = 0; file < 8; file++) {
-                Piece piece = board.PieceAt(new BoardPosition(file, rank));
-                if (piece != null) {
-                    if (piece.GetPieceType() == Piece.PieceType.King && piece.PieceColor() == kingColor) {
-                        return piece as King;
-                    }
-                }
-                
-            }
-        }
-
-        // Impossible case
-        Debug.Log("Impossible case");
-        return null;
-
-    }
-
-
 }
