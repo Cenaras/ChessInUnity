@@ -15,6 +15,7 @@ public class Game : MonoBehaviour
     private Board board;
     private static String DEFAULT_STARTING_POSITION = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
 
+
     // Start is called before the first frame update
     void Start()
     {
