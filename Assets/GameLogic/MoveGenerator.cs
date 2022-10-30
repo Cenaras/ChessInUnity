@@ -1,28 +1,30 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Runtime.InteropServices.WindowsRuntime;
+using System.Linq;
 using UnityEngine;
 
 public class MoveGenerator {
     public List<Move> GenerateValidMoves(Piece piece, Board board) {
+        Debug.Log("ONLY CALL ME ONCE PR TURN!!!");
         if (piece != null) {
             return GenerateValidMovesForPiece(piece, board);
         }
         return new List<Move>();
     }
 
-    /* TODO: We need valid checks for a lot of things besides just the move rules:
+    /* TODO:
         - is the piece pinned?
-        - is the piece blocked?
         - are we in check?
         - are we in double check? (Has to move king)
-        - Have we castled? Is pawn first move?
         - Can we en pessant?
-        - Pawn capture moves?
      */
 
     private List<Move> GenerateValidMovesForPiece(Piece piece, Board board) {
+        // Testing some stuff
+        //IsKingAttacked(board, piece.PieceColor());
+
+
         Piece.PieceType type = piece.GetPieceType();
         if (type == Piece.PieceType.Pawn)
             return ValidPawnMoves(piece as Pawn, board);
@@ -188,11 +190,6 @@ public class MoveGenerator {
         List<BoardPosition> visibleSquares = new List<BoardPosition>();
         BoardPosition direction = DirectionOfPiece(start, target);
 
-        Debug.Log("Start; " + start);
-        Debug.Log("Target; " + target);
-        Debug.Log("Direction: " + direction);
-
-
         // Compute all squares in the direction:
         List<BoardPosition> posInDirection = new List<BoardPosition>();
         for(int i = 0; i < 8; i++) {
@@ -204,7 +201,6 @@ public class MoveGenerator {
         // Loop over all squares - if one is occupied, break from loop - else add the square - exlude own square
         for (int i = 1; i < posInDirection.Count; i++) {
             BoardPosition possiblePos = posInDirection[i];
-            //Debug.Log("Looking at possible pos " + possiblePos);
             Piece piece = board.PieceAt(possiblePos);
             // If a piece is there, add it and break.
             if (piece != null) {
@@ -225,5 +221,45 @@ public class MoveGenerator {
         }
         return false;
     }
+
+
+
+    /** Checks if the king with specified kingColor is under attack */
+    private bool IsKingAttacked(Board board, GameConstants.GameColor kingColor) {
+
+        Piece lastMovedPiece = board.LastMovedPiece;
+        King king = FindKing(board, kingColor);
+        BoardPosition kingPosition = king.GetPosition();
+
+        List<Move> attackingMoves = GenerateValidMoves(lastMovedPiece, board);
+        // Filter moves to get target squares - check if it equals the king pos...
+        bool any = attackingMoves.Select(x => BoardPosition.Equals(x.To, kingPosition)).Any();
+
+        if (any)
+            Debug.Log("ATTACKING KING");
+
+        return any;
+    }
+
+
+    private King FindKing(Board board, GameConstants.GameColor kingColor) {
+        for (int rank = 0; rank < 8; rank++) {
+            for (int file = 0; file < 8; file++) {
+                Piece piece = board.PieceAt(new BoardPosition(file, rank));
+                if (piece != null) {
+                    if (piece.GetPieceType() == Piece.PieceType.King && piece.PieceColor() == kingColor) {
+                        return piece as King;
+                    }
+                }
+                
+            }
+        }
+
+        // Impossible case
+        Debug.Log("Impossible case");
+        return null;
+
+    }
+
 
 }

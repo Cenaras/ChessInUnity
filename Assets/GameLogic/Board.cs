@@ -51,6 +51,8 @@ public class Board {
     public GameConstants.GameColor colorToMove;
     public MoveGenerator moveGen;
 
+    // Use this to determine if after a piece moves, it attacks the enemy king.
+    public Piece LastMovedPiece{ get; set; }
 
     private void SwapTurn() {
         if (colorToMove == GameConstants.GameColor.White) {
@@ -156,6 +158,7 @@ public class Board {
 
 
         SwapTurn();
+        LastMovedPiece = movingPiece;
         return true;
     }
 

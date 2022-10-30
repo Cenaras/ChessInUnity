@@ -41,20 +41,6 @@ public class Pawn : Piece {
 
         bool isWhitePiece = color == GameConstants.GameColor.White;
 
-        /*BoardPosition infrontTest = null;  
-        if (isWhitePiece) {
-            BoardPosition bp = new BoardPosition(position.file + 1, position.rank);
-            if (bp.IsValidPosition())
-                infrontTest = bp;
-        } else {
-            BoardPosition bp = new BoardPosition(position.file - 1, position.rank);
-            if (bp.IsValidPosition())
-                infrontTest = bp;
-        }
-
-        if (infrontTest != null)
-            candidatePositions.Add(infrontTest);*/
-
         BoardPosition infront = isWhitePiece
             ? new BoardPosition(position.file, position.rank + 1)
             : new BoardPosition(position.file, position.rank - 1);
@@ -78,11 +64,11 @@ public class Pawn : Piece {
 
         BoardPosition captureLeft = isWhite
             ? new BoardPosition(position.file - 1, position.rank + 1)
-            : new BoardPosition(position.file + 1, position.rank - 1);
+            : new BoardPosition(position.file - 1, position.rank - 1);
 
         BoardPosition captureRight = isWhite
-            ? new BoardPosition(position.file - 1, position.rank - 1)
-            : new BoardPosition(position.file + 1, position.rank + 1);
+            ? new BoardPosition(position.file + 1, position.rank + 1)
+            : new BoardPosition(position.file + 1, position.rank - 1);
 
         Piece.AddPositionIfValid(candidatePositions, captureLeft);
         Piece.AddPositionIfValid(candidatePositions, captureRight);

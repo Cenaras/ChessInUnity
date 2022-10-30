@@ -33,8 +33,8 @@ public class Game : MonoBehaviour
         bool moveMade = playerToMove.TryGenerateMove();
         if (moveMade) {
             boardUI.UpdatePosition(board);
-            // TODO: Only update when move is made - but for some reason our render doesn't load then...
             playerToMove = (playerToMove.Equals(whitePlayer)) ? blackPlayer : whitePlayer;
+
         }
         
     }

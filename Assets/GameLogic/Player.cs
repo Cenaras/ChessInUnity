@@ -27,7 +27,7 @@ public class Player : PlayerStrategy {
     private BoardPosition selectedSquare;
     private GameConstants.GameColor color;
 
-
+    /* TODO: Only compute valid moves once pr turn */
 
     Camera cam;
 
@@ -81,7 +81,6 @@ public class Player : PlayerStrategy {
     void HandlePieceSelection() {
         if (Input.GetMouseButtonDown(0)) {
             BoardPosition clickedPosition = BoardPosFromMouse();
-            Piece piece = board.PieceAt(clickedPosition);
 
             selectedSquare = clickedPosition;
             movingPhase = MovingActionPhase.PIECE_DRAGGED;
@@ -89,11 +88,13 @@ public class Player : PlayerStrategy {
     }
 
     bool HandleDraggedPlacement() {
+
         BoardPosition fromSquare = selectedSquare;
         // TODO: Fix drag animation when piece hits previously occupied square.
         //boardUI.DragPieceAnim(fromSquare, cam.ScreenToWorldPoint(Input.mousePosition));
 
         // Bad since computing all valid moves in loop - move somewhere outside of the loop
+
         Piece heldPiece = board.PieceAt(fromSquare);
         List<Move> validMoves = board.moveGen.GenerateValidMoves(heldPiece, board);
         boardUI.HighlightValidSquares(heldPiece, validMoves);
@@ -142,7 +143,6 @@ public class Player : PlayerStrategy {
         Vector2 mousePos = mousePosRaw + offset;
         // Get the position on the board. 
         BoardPosition test = new BoardPosition((int)Math.Floor(mousePos.x), (int)Math.Floor(mousePos.y));
-        Debug.Log("BoardPosFromMouse: " + test);
         return new BoardPosition((int)Math.Floor(mousePos.x), (int)Math.Floor(mousePos.y));
     }
 
