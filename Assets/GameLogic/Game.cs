@@ -29,17 +29,7 @@ public class Game : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        // Maybe rename to Update if we do more. 
-        // 
-        /*bool moveMade = playerToMove.TryGenerateMove();
-        if (moveMade) {
-            boardUI.UpdatePosition(board);
-            playerToMove = (playerToMove.Equals(whitePlayer)) ? blackPlayer : whitePlayer;
-
-        }*/
-
         playerToMove.Update();
-        // TODO: Update the turn of the player - i.e. update the playerToMove
         UpdatePlayerToMove();
         
     }

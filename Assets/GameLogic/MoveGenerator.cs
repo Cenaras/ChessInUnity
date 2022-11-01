@@ -10,8 +10,11 @@ public class MoveGenerator {
         if (piece != null) {
             pseudoLegalMoves = GenerateValidMovesForPiece(piece, board);
         }
-        return FilterNonLegalMoves(pseudoLegalMoves, board);
-        //return pseudoLegalMoves;
+        List<Move> legalMoves = FilterNonLegalMoves(pseudoLegalMoves, board);
+        if (legalMoves.Count == 0) {
+            Debug.Log("Checkmate!");
+        }
+        return legalMoves;
     }
 
     /* TODO: Filter the non legal moves somehow in a pretty way. */
@@ -30,7 +33,7 @@ public class MoveGenerator {
             Piece targetPiece = board.PieceAt(pseudoLegal.To);
             board.MakeMove(movingPiece, pseudoLegal);
 
-            List<Move> responses = new List<Move>();
+            List<Move> responses = new();
             for (int i = 0; i < 8; i++) {
                 for (int j = 0; j < 8; j++) {
                     Piece opponentPiece = board.PieceAt(new BoardPosition(i,j));
@@ -40,12 +43,12 @@ public class MoveGenerator {
                 }
             }
             // :)
-
-            if (!responses.Any(r => BoardPosition.Equals(r.To, board.GetKingOfColor(GameConstants.OppositeColor(board.colorToMove)).GetPosition()))) {
+            GameConstants.GameColor enemyColor = GameConstants.OppositeColor(board.colorToMove);
+            King enemyKing = board.GetKingOfColor(enemyColor);
+            if (!responses.Any(r => BoardPosition.Equals(r.To, enemyKing.GetPosition()))) {
                 legalMoves.Add(pseudoLegal);
             }
 
-            // Issue; when unmaking capture moves, we get in trouble since we null the captured piece
             board.UnmakeMove(movingPiece, pseudoLegal, targetPiece);
         }
 
@@ -89,7 +92,7 @@ public class MoveGenerator {
 
         // Check for castling
         (bool, bool) castleInformation = CanCastle(king, board);
-        Debug.Log("Castle information: " + castleInformation);
+        //Debug.Log("Castle information: " + castleInformation);
         if (castleInformation.Item1)
             validMoves.Add(new Move(piecePos, king.QueenSideCastlePosition(), Move.MoveType.QueenCastle));
         if (castleInformation.Item2)

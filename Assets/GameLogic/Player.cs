@@ -83,7 +83,7 @@ public class Player : PlayerStrategy {
             Piece selectedPiece = board.PieceAt(clickedPosition);
             // Ensure pieces only move on their own turn.
             // && selectedPiece.PieceColor() == board.colorToMove
-            if (selectedPiece != null ) {
+            if (selectedPiece != null && selectedPiece.PieceColor() == board.colorToMove) {
                 List<Move> validMoves = board.moveGen.GenerateValidMoves(selectedPiece, board);
                 boardUI.HighlightValidSquares(selectedPiece, validMoves);
                 currentState = InputState.PieceDragged;
@@ -113,15 +113,12 @@ public class Player : PlayerStrategy {
             tryingMove = new Move(fromSquare, targetSquare);
         }
 
-        TryMakeMoveNew(heldPiece, tryingMove);
+        TryMakeMove(heldPiece, tryingMove);
     }
 
 
-    private void TryMakeMoveNew(Piece piece, Move move) {
+    private void TryMakeMove(Piece piece, Move move) {
         List<Move> validMoves = board.moveGen.GenerateValidMoves(piece, board);
-        foreach (Move m in validMoves) {
-            Debug.Log(m);
-        }
 
         // If a move is valid, make it - else cancel piece selection.
         if (!validMoves.Contains(move)) {

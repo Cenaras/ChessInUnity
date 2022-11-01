@@ -118,9 +118,6 @@ public class Board {
                     };
 
                     pieces[file, 7 - i] = piece;
-                    if (piece.GetPieceType() == Piece.PieceType.King) {
-                        Debug.Log("King at position " + file + ", " + (7 - i));
-                    }
                     file++;
                 }
             }
@@ -139,7 +136,7 @@ public class Board {
             MoveRookForCastle(piece as King, move.Type);
         }
         SwapTurn();
-        Debug.Log("move made, current players turn is " + colorToMove);
+        //Debug.Log("move made, current players turn is " + colorToMove);
         boardUI.UpdatePosition(this);
     }
 
@@ -149,9 +146,8 @@ public class Board {
         // Undo capture, by placing captured piece at the moves To location
         PlacePieceAt(moveToUndo.To, capturedPiece);
 
-
         SwapTurn();
-        Debug.Log("Move unmade, current players turn is " + colorToMove);
+        //Debug.Log("Move unmade, current players turn is " + colorToMove);
         boardUI.UpdatePosition(this);
 
     }

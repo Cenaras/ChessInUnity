@@ -26,7 +26,7 @@ public static class GameConstants
     public static GameColor OppositeColor(GameColor color) {
         switch (color) {
             case GameColor.White: return GameColor.Black;
-            default: return GameColor.Black;
+            default: return GameColor.White;
         }
     }
 
