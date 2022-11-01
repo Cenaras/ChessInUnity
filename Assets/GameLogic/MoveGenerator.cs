@@ -10,8 +10,8 @@ public class MoveGenerator {
         if (piece != null) {
             pseudoLegalMoves = GenerateValidMovesForPiece(piece, board);
         }
-        //return FilterNonLegalMoves(pseudoLegalMoves, board);
-        return pseudoLegalMoves;
+        return FilterNonLegalMoves(pseudoLegalMoves, board);
+        //return pseudoLegalMoves;
     }
 
     /* TODO: Filter the non legal moves somehow in a pretty way. */
@@ -23,10 +23,12 @@ public class MoveGenerator {
         // If after move, for all pieces who attacked it before it moved, continue in the direction to see if they see king.
         // Might have to rewrite "IsSquareVisible" to something like "AttacksSquare" and include own pieces and then filter them out when trying to make the move?
 
+
         /* Trivial solution to check - for all pseudolegal moves m, play m, look at all responses and see if one captures your king. If not, add m to legal, else don't */
         foreach (Move pseudoLegal in pseudoLegalMoves) {
             Piece movingPiece = board.PieceAt(pseudoLegal.From);
-            board.MakeMoveNew(movingPiece, pseudoLegal);
+            Piece targetPiece = board.PieceAt(pseudoLegal.To);
+            board.MakeMove(movingPiece, pseudoLegal);
 
             List<Move> responses = new List<Move>();
             for (int i = 0; i < 8; i++) {
@@ -43,7 +45,8 @@ public class MoveGenerator {
                 legalMoves.Add(pseudoLegal);
             }
 
-            board.UnmakeMoveNew(movingPiece, pseudoLegal);
+            // Issue; when unmaking capture moves, we get in trouble since we null the captured piece
+            board.UnmakeMove(movingPiece, pseudoLegal, targetPiece);
         }
 
         return legalMoves;

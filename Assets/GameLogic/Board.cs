@@ -129,8 +129,8 @@ public class Board {
     }
 
 
-    public void MakeMoveNew(Piece piece, Move move) {
-        MovePieceNew(piece, move.From, move.To);
+    public void MakeMove(Piece piece, Move move) {
+        MovePiece(piece, move.From, move.To);
         UpdateHasMovedForPieceNew(piece, true);
         
         // Check if move was a castle, and if it was, move the rook...
@@ -143,9 +143,13 @@ public class Board {
         boardUI.UpdatePosition(this);
     }
 
-    public void UnmakeMoveNew(Piece piece, Move move) {
-        MovePieceNew(piece, move.To, move.From);
+    public void UnmakeMove(Piece piece, Move moveToUndo, Piece capturedPiece) {
+        MovePiece(piece, moveToUndo.To, moveToUndo.From);
         UpdateHasMovedForPieceNew(piece, false);
+        // Undo capture, by placing captured piece at the moves To location
+        PlacePieceAt(moveToUndo.To, capturedPiece);
+
+
         SwapTurn();
         Debug.Log("Move unmade, current players turn is " + colorToMove);
         boardUI.UpdatePosition(this);
@@ -189,10 +193,10 @@ public class Board {
 
     private void MoveRookForCastle(BoardPosition rookStartPos, BoardPosition targetPos) {
         Piece rook = PieceAt(rookStartPos);
-        MovePieceNew(rook, rookStartPos, targetPos);
+        MovePiece(rook, rookStartPos, targetPos);
     }
 
-    private void MovePieceNew(Piece piece, BoardPosition from, BoardPosition to) {
+    private void MovePiece(Piece piece, BoardPosition from, BoardPosition to) {
         piece.SetPosition(to);
         PlacePieceAt(to, piece);
         ClearPositionAt(from);
