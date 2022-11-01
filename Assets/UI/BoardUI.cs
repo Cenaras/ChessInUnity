@@ -60,6 +60,7 @@ public class BoardUI : MonoBehaviour {
     }
 
     public void UpdatePosition(Board board) {
+        Debug.Log("Updating position");
         for (int rank = 0; rank < 8; rank++) {
             for (int file = 0; file < 8; file++) {
                 Piece piece = board.GetBoardState()[file, rank];

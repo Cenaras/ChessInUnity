@@ -7,6 +7,7 @@ using Unity.VisualScripting;
 using System.Runtime.CompilerServices;
 using UnityEngine.PlayerLoop;
 using System.Text;
+using UnityEditor;
 
 // Magic for records to work
 namespace System.Runtime.CompilerServices {
@@ -39,9 +40,6 @@ public record BoardPosition(int file, int rank) {
     public static bool Equals(BoardPosition one, BoardPosition two) {
         return (one.file == two.file) && (one.rank == two.rank);
     }
-
-
-
 }
 
 public class Board {
@@ -50,9 +48,17 @@ public class Board {
     private readonly Piece[,] pieces;
     public GameConstants.GameColor colorToMove;
     public MoveGenerator moveGen;
+    private BoardUI boardUI;
+    public King WhiteKing;
+    public King BlackKing;
 
-    // Use this to determine if after a piece moves, it attacks the enemy king.
-    public Piece LastMovedPiece{ get; set; }
+    public King GetKingOfColor(GameConstants.GameColor kingColor) {
+        if (kingColor == GameConstants.GameColor.White)
+            return WhiteKing;
+        else
+            return BlackKing;
+    }
+
 
     private void SwapTurn() {
         if (colorToMove == GameConstants.GameColor.White) {
@@ -62,17 +68,20 @@ public class Board {
         }
     }
 
-    public Board(Piece[,] pieces) {
+    public Board(Piece[,] pieces, BoardUI boardUI) {
         this.pieces = pieces;
         colorToMove = GameConstants.GameColor.White;
         moveGen = new MoveGenerator();
+        this.boardUI = boardUI;
+        WhiteKing = pieces[4, 0] as King;
+        BlackKing = pieces[4, 7] as King;
     }
 
     public Piece[,] GetBoardState() {
         return pieces;
     }
 
-    public static Board parseFen(String fen) {
+    public static Piece[,] parseFen(string fen) {
         Dictionary<char, Piece.PieceType> pieceFromSymbol = new Dictionary<char, Piece.PieceType>()
         {
             {'r', Piece.PieceType.Rook},
@@ -84,10 +93,10 @@ public class Board {
         };
 
         Piece[,] pieces = new Piece[8, 8];
-        String[] fenRanks = fen.Split('/');
+        string[] fenRanks = fen.Split('/');
         for (int i = 0; i < 8; i++) {
             int file = 0;
-            String fenRank = fenRanks[i];
+            string fenRank = fenRanks[i];
             foreach (char c in fenRank) {
                 if (Char.IsDigit(c)) file += c;
                 else {
@@ -109,65 +118,55 @@ public class Board {
                     };
 
                     pieces[file, 7 - i] = piece;
-
+                    if (piece.GetPieceType() == Piece.PieceType.King) {
+                        Debug.Log("King at position " + file + ", " + (7 - i));
+                    }
                     file++;
                 }
             }
         }
-        return new Board(pieces);
+        return pieces;
     }
 
 
-    /** Returns true if the move was made */
-    public bool TryMakeMove(GameConstants.GameColor playerColor, Move move, List<Move> validMoves) {
-        Piece movingPiece = PieceAt(move.From);
-
-        if (movingPiece == null) {
-            Debug.Log("Moving piece is null");
-        }
-
-        if (movingPiece.GetPieceType() == Piece.PieceType.King) {
-            Debug.Log("Holding King");
-            Debug.Log("Move is: " + move.From + ", " + move.To + ": " + move.Type);
-        }
-
-        // Only move the piece if it exists and is from the right player
-        if (movingPiece == null || movingPiece.PieceColor() != playerColor) {
-            //Debug.Log("Cannot move - wrong color or no piece");
-            return false;
-        }
-
-        // Generate valid moves for current position and check if the move we tried to make is valid.
-        if (!validMoves.Contains(move)) {
-            return false;
-        }
-
-        MovePiece(movingPiece, move.From, move.To);
-        movingPiece.SetPosition(move.To);
-        // If pawn move, mark as HasMoved.
-        if (movingPiece.GetPieceType() == Piece.PieceType.Pawn) {
-            (movingPiece as Pawn).HasMoved = true;
-        }
-        if (movingPiece.GetPieceType() == Piece.PieceType.King) {
-            (movingPiece as King).HasMoved = true;
-        }
-        if (movingPiece.GetPieceType() == Piece.PieceType.Rook) {
-            (movingPiece as Rook).HasMoved = true;
-        }
-
+    public void MakeMoveNew(Piece piece, Move move) {
+        MovePieceNew(piece, move.From, move.To);
+        UpdateHasMovedForPieceNew(piece, true);
+        
         // Check if move was a castle, and if it was, move the rook...
         if (move.Type == Move.MoveType.QueenCastle || move.Type == Move.MoveType.KingCastle) {
-            MoveRookForCastle(movingPiece as King, move.Type);
+            Debug.Log("Move was castle");
+            MoveRookForCastle(piece as King, move.Type);
         }
-
-
         SwapTurn();
-        LastMovedPiece = movingPiece;
-        return true;
+        Debug.Log("move made, current players turn is " + colorToMove);
+        boardUI.UpdatePosition(this);
+    }
+
+    public void UnmakeMoveNew(Piece piece, Move move) {
+        MovePieceNew(piece, move.To, move.From);
+        UpdateHasMovedForPieceNew(piece, false);
+        SwapTurn();
+        Debug.Log("Move unmade, current players turn is " + colorToMove);
+        boardUI.UpdatePosition(this);
+
+    }
+
+
+    private void UpdateHasMovedForPieceNew(Piece movingPiece, bool hasMoved) {
+        // If pawn move, mark as HasMoved.
+        if (movingPiece.GetPieceType() == Piece.PieceType.Pawn) {
+            (movingPiece as Pawn).HasMoved = hasMoved;
+        }
+        if (movingPiece.GetPieceType() == Piece.PieceType.King) {
+            (movingPiece as King).HasMoved = hasMoved;
+        }
+        if (movingPiece.GetPieceType() == Piece.PieceType.Rook) {
+            (movingPiece as Rook).HasMoved = hasMoved;
+        }
     }
 
     private void MoveRookForCastle(King king, Move.MoveType castleType) {
-        BoardPosition kingPos = king.GetPosition();
         switch (king.PieceColor()) {
             case GameConstants.GameColor.White: {
                     if (castleType == Move.MoveType.QueenCastle) {
@@ -190,13 +189,14 @@ public class Board {
 
     private void MoveRookForCastle(BoardPosition rookStartPos, BoardPosition targetPos) {
         Piece rook = PieceAt(rookStartPos);
-        MovePiece(rook, rookStartPos, targetPos);
+        MovePieceNew(rook, rookStartPos, targetPos);
     }
 
-
-    private void MovePiece(Piece piece, BoardPosition from, BoardPosition to) {
-        ClearPositionAt(from);
+    private void MovePieceNew(Piece piece, BoardPosition from, BoardPosition to) {
+        piece.SetPosition(to);
         PlacePieceAt(to, piece);
+        ClearPositionAt(from);
+
     }
 
 

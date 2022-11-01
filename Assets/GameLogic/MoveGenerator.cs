@@ -10,12 +10,43 @@ public class MoveGenerator {
         if (piece != null) {
             pseudoLegalMoves = GenerateValidMovesForPiece(piece, board);
         }
-        return FilterNonLegalMoves(pseudoLegalMoves, board);
+        //return FilterNonLegalMoves(pseudoLegalMoves, board);
+        return pseudoLegalMoves;
     }
 
     /* TODO: Filter the non legal moves somehow in a pretty way. */
     private List<Move> FilterNonLegalMoves(List<Move> pseudoLegalMoves, Board board) {
-        return pseudoLegalMoves;
+
+        List<Move> legalMoves = new List<Move>();
+
+        // For now, trivial inefficient approach. Ideas for later; look at last moved piece - see if it attacks, or if another piece of same color attacked it before it moved
+        // If after move, for all pieces who attacked it before it moved, continue in the direction to see if they see king.
+        // Might have to rewrite "IsSquareVisible" to something like "AttacksSquare" and include own pieces and then filter them out when trying to make the move?
+
+        /* Trivial solution to check - for all pseudolegal moves m, play m, look at all responses and see if one captures your king. If not, add m to legal, else don't */
+        foreach (Move pseudoLegal in pseudoLegalMoves) {
+            Piece movingPiece = board.PieceAt(pseudoLegal.From);
+            board.MakeMoveNew(movingPiece, pseudoLegal);
+
+            List<Move> responses = new List<Move>();
+            for (int i = 0; i < 8; i++) {
+                for (int j = 0; j < 8; j++) {
+                    Piece opponentPiece = board.PieceAt(new BoardPosition(i,j));
+                    if (opponentPiece != null && opponentPiece.PieceColor() == board.colorToMove) {
+                        responses.AddRange(GenerateValidMovesForPiece(opponentPiece, board));
+                    }
+                }
+            }
+            // :)
+
+            if (!responses.Any(r => BoardPosition.Equals(r.To, board.GetKingOfColor(GameConstants.OppositeColor(board.colorToMove)).GetPosition()))) {
+                legalMoves.Add(pseudoLegal);
+            }
+
+            board.UnmakeMoveNew(movingPiece, pseudoLegal);
+        }
+
+        return legalMoves;
     }
 
 

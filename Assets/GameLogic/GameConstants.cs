@@ -23,6 +23,13 @@ public static class GameConstants
         Black,
     }
 
+    public static GameColor OppositeColor(GameColor color) {
+        switch (color) {
+            case GameColor.White: return GameColor.Black;
+            default: return GameColor.Black;
+        }
+    }
+
     public static Sprite GetPieceSprite(Piece piece) {
         string id = PieceId(piece);
         string color = piece.PieceColor() == GameColor.White ? "w" : "b";

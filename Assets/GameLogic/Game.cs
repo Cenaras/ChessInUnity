@@ -23,7 +23,7 @@ public class Game : MonoBehaviour
         boardUI = FindObjectOfType<BoardUI>();
         StartNewGame(DEFAULT_STARTING_POSITION);
         boardUI.UpdatePosition(board);
-        board.PrintBoard();
+        //board.PrintBoard();
     }
 
     // Update is called once per frame
@@ -31,18 +31,36 @@ public class Game : MonoBehaviour
     {
         // Maybe rename to Update if we do more. 
         // 
-        bool moveMade = playerToMove.TryGenerateMove();
+        /*bool moveMade = playerToMove.TryGenerateMove();
         if (moveMade) {
             boardUI.UpdatePosition(board);
             playerToMove = (playerToMove.Equals(whitePlayer)) ? blackPlayer : whitePlayer;
 
-        }
+        }*/
+
+        playerToMove.Update();
+        // TODO: Update the turn of the player - i.e. update the playerToMove
+        UpdatePlayerToMove();
         
+    }
+
+
+    private void UpdatePlayerToMove() {
+        GameConstants.GameColor colorToMove = board.colorToMove;
+        if (colorToMove == GameConstants.GameColor.White) {
+            //Debug.Log("New player to move is white");
+            playerToMove = whitePlayer;
+        } else {
+            //Debug.Log("New player to move is black");
+            playerToMove = blackPlayer;
+        }
     }
 
     private void StartNewGame(String FenStartingPosition) {
         // Maybe make an event for registering a move instead of returning a bool when it does from TryGenerateMove()?
-        board = Board.parseFen(FenStartingPosition);
+        Piece[,] pieces = Board.parseFen(FenStartingPosition);
+        board = new Board(pieces, boardUI);
+        //board = Board.parseFen(FenStartingPosition);
         whitePlayer = new Player("WhitePlayer", GameConstants.GameColor.White, board);
         blackPlayer = new Player("BlackPlayer", GameConstants.GameColor.Black, board);
         playerToMove = whitePlayer;

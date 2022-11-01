@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
+using Unity.VisualScripting;
 using UnityEditor;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
@@ -48,42 +49,40 @@ public class Player : PlayerStrategy {
     }
 
 
-    /** Returns true if a move was performed */
-    public bool TryGenerateMove() {
-        return HandleMouseInput();
-
+    public void Update() {
+        // Somewhere, make sure we can only do stuff it its our turn...
+        HandleMouseInputNew();
     }
 
-    /* TODO: FIX THIS HORRENDOUS CODE. Return stuff instead of altering state, and give arguments to functions instead of fetching from state. */
-
-    private bool HandleMouseInput() {
+    private void HandleMouseInputNew() {
 
         // Prolly use some events instead of bool and returns. 
 
         BoardPosition mousePos = BoardPosFromMouse();
-       
+
 
         // Detect the current input state and act accordingly
         if (currentState == InputState.None) {
             HandlePieceSelection(mousePos);
-            return false;
         } else if (currentState == InputState.PieceDragged) {
-            return HandleDragMovement(mousePos);
+            HandleDragMovementNew(mousePos);
         }
 
         if (Input.GetMouseButtonDown(1)) {
             CancelPieceSelection();
         }
-        return false;
-
     }
+
+
+    /* TODO: FIX THIS HORRENDOUS CODE. Return stuff instead of altering state, and give arguments to functions instead of fetching from state. */
 
     void HandlePieceSelection(BoardPosition clickedPosition) {
         if (Input.GetMouseButtonDown(0)) {
 
             // Compute valid moves for selected piece and mark as dragging piece
             Piece selectedPiece = board.PieceAt(clickedPosition);
-            if (selectedPiece != null) {
+            // Ensure pieces only move on their own turn.
+            if (selectedPiece != null && selectedPiece.PieceColor() == board.colorToMove) {
                 List<Move> validMoves = board.moveGen.GenerateValidMoves(selectedPiece, board);
                 boardUI.HighlightValidSquares(selectedPiece, validMoves);
                 currentState = InputState.PieceDragged;
@@ -94,44 +93,53 @@ public class Player : PlayerStrategy {
         }
     }
 
-    bool HandleDragMovement(BoardPosition targetSquare) {
-
+    void HandleDragMovementNew(BoardPosition targetSquare) {
         if (Input.GetMouseButtonUp(0)) {
-            return HandlePiecePlacement(selectedSquare, targetSquare);
+            HandlePiecePlacementNew(selectedSquare, targetSquare);
         }
-        return false;
     }
 
-    private bool HandlePiecePlacement(BoardPosition fromSquare, BoardPosition targetSquare) {
+    private void HandlePiecePlacementNew(BoardPosition fromSquare, BoardPosition targetSquare) {
         Piece heldPiece = board.PieceAt(fromSquare);
-        List<Move> validMoves = board.moveGen.GenerateValidMoves(heldPiece, board);
         Move tryingMove;
-        
+
         if (Move.IsCastleQueenSideMove(fromSquare, targetSquare)) {
             tryingMove = new Move(fromSquare, targetSquare, Move.MoveType.QueenCastle);
         } else if (Move.IsCastleKingSideMove(fromSquare, targetSquare)) {
+            Debug.Log("King castle trying move");
             tryingMove = new Move(fromSquare, targetSquare, Move.MoveType.KingCastle);
         } else {
             tryingMove = new Move(fromSquare, targetSquare);
         }
 
-        bool moveMade = board.TryMakeMove(color, tryingMove, validMoves);
-        if (!moveMade) {
-            CancelPieceSelection();
+        TryMakeMoveNew(heldPiece, tryingMove);
+    }
+
+
+    private void TryMakeMoveNew(Piece piece, Move move) {
+        List<Move> validMoves = board.moveGen.GenerateValidMoves(piece, board);
+        foreach (Move m in validMoves) {
+            Debug.Log(m);
         }
 
-        boardUI.ResetHighlightedSquare();
+        // If a move is valid, make it - else cancel piece selection.
+        if (!validMoves.Contains(move)) {
+            CancelPieceSelection();
+        } else {
+            board.MakeMoveNew(piece, move);
+            boardUI.ResetHighlightedSquare();
+
+        }
         currentState = InputState.None;
-        return moveMade;
-
-
     }
+
 
     void CancelPieceSelection() {
         currentState = InputState.None;
         // Maybe this gets called on all clicks also? There's a lot of clean up to do in this project if you ever feel like it.
         //Debug.Log("Resetting square " + selectedSquare);
         boardUI.ResetPiecePosition(selectedSquare);
+        boardUI.ResetHighlightedSquare();
     }
 
     BoardPosition BoardPosFromMouse() {
