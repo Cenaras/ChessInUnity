@@ -4,6 +4,7 @@ public class Bishop : Piece {
 
     private GameConstants.GameColor color;
     private BoardPosition position;
+    private bool hasMoved;
 
     private static List<BoardPosition> directionOffset = new List<BoardPosition> {
         new BoardPosition(-1, -1),
@@ -16,6 +17,7 @@ public class Bishop : Piece {
     public Bishop(GameConstants.GameColor pieceColor, BoardPosition startingPosition) {
         color = pieceColor;
         position = startingPosition;
+        hasMoved = false;
     }
 
 
@@ -47,5 +49,13 @@ public class Bishop : Piece {
             }
         }
         return candidatePositions;
+    }
+
+    public bool HasMoved() {
+        return hasMoved;
+    }
+
+    public void SetHasMoved(bool value) {
+        hasMoved = value;
     }
 }

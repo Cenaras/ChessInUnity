@@ -4,16 +4,21 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
+// TODO: En passant and castle through check.
+
+
 public class MoveGenerator {
     public List<Move> GenerateValidMoves(Piece piece, Board board) {
         List<Move> pseudoLegalMoves = new List<Move>();
         if (piece != null) {
-            pseudoLegalMoves = GenerateValidMovesForPiece(piece, board);
+            pseudoLegalMoves = GenPseudoLegalForPiece(piece, board);
         }
         List<Move> legalMoves = FilterNonLegalMoves(pseudoLegalMoves, board);
-        if (legalMoves.Count == 0) {
-            Debug.Log("Checkmate!");
-        }
+        
+        // This is not true - if some piece has no moved, it's not checkmake (rooks turn 1 don't imply checkmate...)
+        //if (legalMoves.Count == 0) {
+        //    Debug.Log("Checkmate!");
+        //}
         return legalMoves;
     }
 
@@ -31,14 +36,14 @@ public class MoveGenerator {
         foreach (Move pseudoLegal in pseudoLegalMoves) {
             Piece movingPiece = board.PieceAt(pseudoLegal.From);
             Piece targetPiece = board.PieceAt(pseudoLegal.To);
-            board.MakeMove(movingPiece, pseudoLegal);
+            board.MakeSilentMove(movingPiece, pseudoLegal);
 
             List<Move> responses = new();
             for (int i = 0; i < 8; i++) {
                 for (int j = 0; j < 8; j++) {
                     Piece opponentPiece = board.PieceAt(new BoardPosition(i,j));
                     if (opponentPiece != null && opponentPiece.PieceColor() == board.colorToMove) {
-                        responses.AddRange(GenerateValidMovesForPiece(opponentPiece, board));
+                        responses.AddRange(GenPseudoLegalForPiece(opponentPiece, board));
                     }
                 }
             }
@@ -63,7 +68,7 @@ public class MoveGenerator {
         - Can we en pessant?
      */
 
-    private List<Move> GenerateValidMovesForPiece(Piece piece, Board board) {
+    private List<Move> GenPseudoLegalForPiece(Piece piece, Board board) {
         Piece.PieceType type = piece.GetPieceType();
         if (type == Piece.PieceType.Pawn)
             return ValidPawnMoves(piece as Pawn, board);
@@ -110,7 +115,6 @@ public class MoveGenerator {
         BoardPosition kingPos = king.GetPosition();
 
         if (king.HasMoved) {
-            Debug.Log("King moved");
             return (false, false);
         }
 
@@ -132,7 +136,7 @@ public class MoveGenerator {
 
             Piece rookPiece = board.PieceAt(rookPosition);
             if (rookPiece.GetPieceType() == Piece.PieceType.Rook) {
-                if (!(rookPiece as Rook).HasMoved && rookPiece.PieceColor() == kingColor) {
+                if (!(rookPiece.HasMoved() && rookPiece.PieceColor() == kingColor)) {
                     return true;
                 }
             }
@@ -175,17 +179,45 @@ public class MoveGenerator {
 
         // Movement of pawn
         foreach (BoardPosition candidatePos in pawn.CandidateSquares()) {
-            if (board.PieceAt(candidatePos) == null) {
-                validMoves.Add(new Move(pos, candidatePos));
+            // Square is empty and double moves are not blocked
+            if (IsSquareVisibleFrom(pos, candidatePos, board, pawn.PieceColor()) && board.PieceAt(candidatePos) == null) {
+                if (Move.IsPawnDoubleMove(pawn, pos, candidatePos))
+                    validMoves.Add(new Move(pos, candidatePos, Move.MoveType.PawnDoubleMove));
+                else
+                    validMoves.Add(new Move(pos, candidatePos));
+
+
             }
         }
 
+        // En passant should be here 
         // Capture of piece if visible and enemy
         foreach (BoardPosition candidateCapture in pawn.CandidateCaptureSquares()) {
             Piece visiblePiece = board.PieceAt(candidateCapture);
             if (visiblePiece != null && visiblePiece.PieceColor() != pawn.PieceColor()) {
                 validMoves.Add(new Move(pos, candidateCapture));
             }
+
+            // Enable en passant capture
+            if (board.enPassantPawn != null) {
+                // Check if en passant pawn is capturable
+                //Debug.Log("Check for en passant");
+                BoardPosition enPassantPosition = board.enPassantPawn.GetPosition();
+
+                /* TODO: This is doubled in Move */
+
+                // Capture possible - maybe add flag to this
+                bool sameFile = candidateCapture.file == enPassantPosition.file;
+                bool enPassantRank = Math.Abs(candidateCapture.rank - enPassantPosition.rank) == 1;
+
+                bool validEnPassant = sameFile && enPassantRank;
+
+                if (validEnPassant) {
+                    validMoves.Add(new Move(pos, candidateCapture, Move.MoveType.EnPassantCapture));
+                }
+
+            }
+
         }
 
         return validMoves;

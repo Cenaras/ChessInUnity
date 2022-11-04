@@ -62,7 +62,7 @@ public class BoardUI : MonoBehaviour {
     public void UpdatePosition(Board board) {
         for (int rank = 0; rank < 8; rank++) {
             for (int file = 0; file < 8; file++) {
-                Piece piece = board.GetBoardState()[file, rank];
+                Piece piece = board.PieceAt(new BoardPosition(file, rank));
 
                 // If a piece is present, render it otherwise remove textures by setting to null.
                 if (piece != null) {

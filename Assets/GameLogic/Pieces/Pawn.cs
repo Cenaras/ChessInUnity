@@ -18,7 +18,7 @@ public class Pawn : Piece {
         position = startingPosition;
         HasMoved = false;
     }
-
+    
     
     public Piece.PieceType GetPieceType() {
         return Piece.PieceType.Pawn;
@@ -74,5 +74,13 @@ public class Pawn : Piece {
         Piece.AddPositionIfValid(candidatePositions, captureRight);
 
         return candidatePositions;
+    }
+
+    bool Piece.HasMoved() {
+        return HasMoved;
+    }
+
+    public void SetHasMoved(bool value) {
+        HasMoved = value;
     }
 }

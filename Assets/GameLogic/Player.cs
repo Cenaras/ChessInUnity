@@ -100,6 +100,7 @@ public class Player : PlayerStrategy {
         }
     }
 
+    /* Lovely code innit? */
     private void HandlePiecePlacementNew(BoardPosition fromSquare, BoardPosition targetSquare) {
         Piece heldPiece = board.PieceAt(fromSquare);
         Move tryingMove;
@@ -107,9 +108,16 @@ public class Player : PlayerStrategy {
         if (Move.IsCastleQueenSideMove(fromSquare, targetSquare)) {
             tryingMove = new Move(fromSquare, targetSquare, Move.MoveType.QueenCastle);
         } else if (Move.IsCastleKingSideMove(fromSquare, targetSquare)) {
-            Debug.Log("King castle trying move");
+            //Debug.Log("King castle trying move");
             tryingMove = new Move(fromSquare, targetSquare, Move.MoveType.KingCastle);
-        } else {
+        } else if (Move.IsPawnDoubleMove(heldPiece, fromSquare, targetSquare)) {
+            tryingMove = new Move(fromSquare, targetSquare, Move.MoveType.PawnDoubleMove);
+        } else if (Move.IsEnPassantCapture(heldPiece, board.enPassantPawn, fromSquare, targetSquare)) {
+            Debug.Log("Trying move is en passant capture");
+            tryingMove = new Move(fromSquare, targetSquare, Move.MoveType.EnPassantCapture);
+        }
+        
+        else {
             tryingMove = new Move(fromSquare, targetSquare);
         }
 
@@ -122,6 +130,7 @@ public class Player : PlayerStrategy {
 
         // If a move is valid, make it - else cancel piece selection.
         if (!validMoves.Contains(move)) {
+            Debug.Log("Move invalid");
             CancelPieceSelection();
         } else {
             board.MakeMove(piece, move);

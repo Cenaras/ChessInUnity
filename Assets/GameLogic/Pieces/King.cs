@@ -65,4 +65,11 @@ public class King : Piece {
             return new BoardPosition(6, 7);
     }
 
+    bool Piece.HasMoved() {
+        return HasMoved;
+    }
+
+    public void SetHasMoved(bool value) {
+        HasMoved = value;
+    }
 }

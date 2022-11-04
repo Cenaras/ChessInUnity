@@ -5,6 +5,8 @@ public class Queen : Piece {
 
     private GameConstants.GameColor color;
     private BoardPosition position;
+    private bool hasMoved;
+
     private static List<BoardPosition> directionOffsets = new List<BoardPosition> {
         new BoardPosition(-1, -1),
         new BoardPosition(1, -1),
@@ -18,6 +20,7 @@ public class Queen : Piece {
     public Queen(GameConstants.GameColor pieceColor, BoardPosition startingPosition) {
         color = pieceColor;
         position = startingPosition;
+        hasMoved = false;
     }
 
 
@@ -45,5 +48,13 @@ public class Queen : Piece {
             }
         }
         return candidatePositions;
+    }
+
+    public bool HasMoved() {
+        return hasMoved;
+    }
+
+    public void SetHasMoved(bool value) {
+        hasMoved = value;
     }
 }

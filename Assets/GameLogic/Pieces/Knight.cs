@@ -3,6 +3,7 @@ using UnityEngine;
 
 public class Knight : Piece {
 
+    private bool hasMoved;
     private GameConstants.GameColor color;
     private BoardPosition position;
     private static List<BoardPosition> knightMoves = new List<BoardPosition> { 
@@ -18,6 +19,7 @@ public class Knight : Piece {
     public Knight(GameConstants.GameColor pieceColor, BoardPosition startingPosition) {
         color = pieceColor;
         position = startingPosition;
+        hasMoved = false;
     }
 
 
@@ -46,5 +48,13 @@ public class Knight : Piece {
         }
 
         return candidatePositions;
+    }
+
+    public bool HasMoved() {
+        return hasMoved;
+    }
+
+    public void SetHasMoved(bool value) {
+        hasMoved = value;
     }
 }

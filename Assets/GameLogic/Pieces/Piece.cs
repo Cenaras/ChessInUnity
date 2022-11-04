@@ -13,6 +13,9 @@ public interface Piece
         King
     }
 
+    public bool HasMoved();
+    public void SetHasMoved(bool value);
+
     public PieceType GetPieceType();
     public GameConstants.GameColor PieceColor();
     public BoardPosition GetPosition();

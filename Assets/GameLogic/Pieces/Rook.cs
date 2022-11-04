@@ -5,7 +5,8 @@ public class Rook : Piece {
 
     private GameConstants.GameColor color;
     private BoardPosition position;
-    public bool HasMoved { get; set; }
+    private bool hasMoved;
+
     private static List<BoardPosition> directionOffsets = new List<BoardPosition> {
         new BoardPosition(0, -1),
         new BoardPosition(0, 1),
@@ -16,7 +17,7 @@ public class Rook : Piece {
     public Rook(GameConstants.GameColor pieceColor, BoardPosition startingPosition) {
         color = pieceColor;
         position = startingPosition;
-        HasMoved = false;
+        hasMoved = false;
     }
 
 
@@ -45,5 +46,13 @@ public class Rook : Piece {
             }
         }
         return candidatePositions;
+    }
+
+    bool Piece.HasMoved() {
+        return hasMoved;
+    }
+
+    public void SetHasMoved(bool value) {
+        hasMoved = value;
     }
 }
