@@ -65,7 +65,7 @@ public struct Move {
         if (piece.GetPieceType() != Piece.PieceType.Pawn)
             return false;
         int distance = Math.Abs(fromSquare.rank - targetSquare.rank);
-        if (distance == 2)
+        if (distance == 2 && piece.HasMoved() == false)
             return true;
         return false;
     }

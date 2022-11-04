@@ -15,10 +15,6 @@ public class MoveGenerator {
         }
         List<Move> legalMoves = FilterNonLegalMoves(pseudoLegalMoves, board);
         
-        // This is not true - if some piece has no moved, it's not checkmake (rooks turn 1 don't imply checkmate...)
-        //if (legalMoves.Count == 0) {
-        //    Debug.Log("Checkmate!");
-        //}
         return legalMoves;
     }
 
@@ -181,8 +177,17 @@ public class MoveGenerator {
         foreach (BoardPosition candidatePos in pawn.CandidateSquares()) {
             // Square is empty and double moves are not blocked
             if (IsSquareVisibleFrom(pos, candidatePos, board, pawn.PieceColor()) && board.PieceAt(candidatePos) == null) {
-                if (Move.IsPawnDoubleMove(pawn, pos, candidatePos))
+                if (Move.IsPawnDoubleMove(pawn, pos, candidatePos)) {
                     validMoves.Add(new Move(pos, candidatePos, Move.MoveType.PawnDoubleMove));
+                    if (pos.file == 0 && pos.rank == 2 && candidatePos.file == 0 && candidatePos.rank == 4) {
+                        Debug.Log("Adding pawn double move " + new Move(pos, candidatePos, Move.MoveType.PawnDoubleMove));
+                        Debug.Log("Pawn has moved: " + pawn.HasMoved());
+                    }
+
+
+                    
+                }
+                    
                 else
                     validMoves.Add(new Move(pos, candidatePos));
 

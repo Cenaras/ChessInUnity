@@ -22,7 +22,33 @@ public class Game : MonoBehaviour {
         StartNewGame(DEFAULT_STARTING_POSITION);
         boardUI.UpdatePosition(board);
         //board.PrintBoard();
+
+        //TestLegalMoves(3);
+        TestSingleDepth(3);
     }
+
+
+    private void TestLegalMoves(int depth) {
+        LegalMovesTest test = new LegalMovesTest(board);
+        Debug.Log($"Running {depth} tests");
+
+        for (int i = 1; i <= depth; i++) {
+            DateTime before = DateTime.Now;
+            int positions = test.MoveGenerationTest(i);
+            DateTime after = DateTime.Now;
+            Debug.Log($"Depth: {i} ply. \tResult: {positions} positions\tTime: {(after - before).TotalSeconds} seconds");
+        }
+    }
+
+    private void TestSingleDepth(int depth) {
+        Debug.Log($"Running single test of depth {depth}");
+        LegalMovesTest test = new LegalMovesTest(board);
+        DateTime before = DateTime.Now;
+        int positions = test.MoveGenerationTest(depth);
+        DateTime after = DateTime.Now;
+        Debug.Log($"Depth: {depth} ply. \tResult: {positions} positions\tTime: {(after - before).TotalSeconds} seconds");
+    }
+
 
     // Update is called once per frame
     void Update() {

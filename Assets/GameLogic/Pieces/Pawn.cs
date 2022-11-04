@@ -9,14 +9,13 @@ public class Pawn : Piece {
     private GameConstants.GameColor color;
     private BoardPosition position;
 
-    // Auto generate getter and setter
-    public bool HasMoved { get; set; }
+    private bool hasMoved;
 
 
     public Pawn(GameConstants.GameColor pieceColor, BoardPosition startingPosition) {
         color = pieceColor;
         position = startingPosition;
-        HasMoved = false;
+        hasMoved = false;
     }
     
     
@@ -46,7 +45,7 @@ public class Pawn : Piece {
             : new BoardPosition(position.file, position.rank - 1);
         candidatePositions.Add(infront);
 
-        if (!HasMoved) {
+        if (!hasMoved) {
             BoardPosition twoInfront = isWhitePiece
                 ? new BoardPosition(position.file, position.rank + 2)
                 : new BoardPosition(position.file, position.rank - 2);
@@ -76,11 +75,11 @@ public class Pawn : Piece {
         return candidatePositions;
     }
 
-    bool Piece.HasMoved() {
-        return HasMoved;
+    public bool HasMoved() {
+        return hasMoved;
     }
 
     public void SetHasMoved(bool value) {
-        HasMoved = value;
+        hasMoved = value;
     }
 }

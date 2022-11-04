@@ -130,7 +130,7 @@ public class Player : PlayerStrategy {
 
         // If a move is valid, make it - else cancel piece selection.
         if (!validMoves.Contains(move)) {
-            Debug.Log("Move invalid");
+            //Debug.Log("Move invalid");
             CancelPieceSelection();
         } else {
             board.MakeMove(piece, move);

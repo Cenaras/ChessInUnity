@@ -102,6 +102,8 @@ public class Board {
             UndoCastleMove(piece as King, moveToUndo.Type);
         }
 
+        /* IDEA: Maybe pawn double moves only get undone i step and not both? */
+
         SwapTurn();
     }
 
