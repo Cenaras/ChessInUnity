@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data.SqlTypes;
+using UnityEditorInternal;
 using UnityEngine;
 
 // https://github.com/SebLague/Chess-AI
@@ -9,7 +10,6 @@ public class BoardUI : MonoBehaviour {
 
     // Assigned from the Inspector
     public BoardTheme boardTheme;
-
 
     SpriteRenderer[,] pieceRenderers = new SpriteRenderer[8, 8];
     MeshRenderer[,] squareRenderers;
@@ -59,58 +59,49 @@ public class BoardUI : MonoBehaviour {
         }
     }
 
+
     public void UpdatePosition(Board board) {
         for (int rank = 0; rank < 8; rank++) {
             for (int file = 0; file < 8; file++) {
-                Piece piece = board.PieceAt(new BoardPosition(file, rank));
-
-                // If a piece is present, render it otherwise remove textures by setting to null.
-                if (piece != null) {
-                    pieceRenderers[file, rank].sprite = piece.sprite();
-                } else {
-                    pieceRenderers[file, rank].sprite = null;
-                }
+                int square = BoardUtils.SquareFrom(file, rank);
+                int piece = board.PieceAt(square);
+                pieceRenderers[file, rank].sprite = BoardUtils.SpriteForPiece(piece);
+                pieceRenderers[file, rank].transform.position = new Vector2(file, rank);
             }
         }
     }
 
 
-    public void OnMoveMade(Board board) {
-        UpdatePosition(board);
-        ResetHighlightedSquare();
-    }
+    public static BoardPosition PositionFromVector(Vector2 vec) {
+        float offset = 0.5f;
+        int file = (int) Math.Floor(vec.x + offset);
+        int rank = (int) Math.Floor(vec.y + offset);
 
-    public void DragPieceAnim(BoardPosition position, Vector2 mousePos) {
-        pieceRenderers[position.file, position.rank].transform.position = mousePos;
-    }
-
-    public void ResetPiecePosition(BoardPosition originalPiecePosition) {
-        pieceRenderers[originalPiecePosition.file, originalPiecePosition.rank].transform.position =
-            new Vector2(
-                originalPiecePosition.file,
-                originalPiecePosition.rank);
-    }
-
-
-    public void HighlightValidSquares(Piece piece, List<Move> validMoves) {
-        foreach (Move move in validMoves) {
-            if (piece.GetPosition().Equals(move.From)) {
-                squareRenderers[move.To.file, move.To.rank].material.color = boardTheme.highlightSquareColor;
-            }
+        if (file >= 0 && file <= 7 && rank >= 0 && rank <= 7) {
+            return new BoardPosition(file, rank);
         }
+
+        return null;
     }
 
-    public void ResetHighlightedSquare() {
+    internal void HighLightLegalMoves() {
+        
+    }
 
-        for (int rank = 0; rank < 8; rank++) {
-            for (int file = 0; file < 8; file++) {
-                Material square = squareRenderers[file, rank].material;
-                if ((file + rank) % 2 != 0) {
-                    square.color = boardTheme.whiteSquareColor;
-                } else {
-                    square.color = boardTheme.blackSquareColor;
-                }
-            }
-        }
+    internal void HighlightSelectedSquare(BoardPosition position) {
+        squareRenderers[position.File, position.Rank].material.color = boardTheme.selectedSquareColor;   
+    }
+
+    internal void DeselectSquare(BoardPosition position) {
+        squareRenderers[position.File, position.Rank].material.color = boardTheme.ColorForSquare(position);
+    }
+
+
+    internal void DragPiece(BoardPosition pieceSquare, Vector2 mousePos) {        
+        pieceRenderers[pieceSquare.File, pieceSquare.Rank].transform.position = mousePos;
+    }
+
+    internal void ResetPiecePosition(BoardPosition selectedPos) {
+        pieceRenderers[selectedPos.File, selectedPos.Rank].transform.position = new Vector2(selectedPos.File, selectedPos.Rank);
     }
 }

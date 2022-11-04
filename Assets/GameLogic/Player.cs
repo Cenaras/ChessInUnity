@@ -1,161 +1,137 @@
-﻿using System;
+using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Numerics;
-using Unity.VisualScripting;
-using UnityEditor;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
-using UnityEngine.UI;
-using UnityEngine.UIElements;
-using Vector2 = UnityEngine.Vector2;
+using UnityEngine.PlayerLoop;
 
-
-enum InputState {
-    None,
-    PieceSelected,
-    PieceDragged,
-}
-
-
-public class Player : PlayerStrategy {
-
-    private static Vector2 offset = new Vector2(0.5f, 0.5f);
-
-    private string username;
-    private Board board;
-    private BoardUI boardUI;
-
+public class Player {
+    private Camera camera;
     private InputState currentState;
-    private BoardPosition selectedSquare;
-    private GameConstants.GameColor color;
+    
+    private BoardUI boardUI;
+    private Board board;
 
-    /* TODO: Only compute valid moves once pr turn */
+    // Store this value in state only once when a square is clicked
+    private BoardPosition selectedPos; 
 
-    Camera cam;
-
-    public Player(string username, GameConstants.GameColor color, Board board) {
-        cam = Camera.main;
-        this.username = username;
-        this.board = board;
-        this.color = color;
+    public Player(Board board) {
+        camera = Camera.main;
         currentState = InputState.None;
-        boardUI = GameObject.FindObjectOfType<BoardUI>();
 
+        boardUI = UnityEngine.Object.FindObjectOfType<BoardUI>();
+        this.board = board;
     }
 
 
-    public string Username() {
-        return username;
+    enum InputState {
+        None,
+        PieceDragged,
+        PieceSelected
     }
-
 
     public void Update() {
-        // Somewhere, make sure we can only do stuff it its our turn...
-        HandleMouseInputNew();
+        HandleMouseInput();
     }
 
-    private void HandleMouseInputNew() {
 
-        // Prolly use some events instead of bool and returns. 
-
-        BoardPosition mousePos = BoardPosFromMouse();
-
-
-        // Detect the current input state and act accordingly
+    void HandleMouseInput() {
+        Vector2 mousePos = camera.ScreenToWorldPoint(Input.mousePosition);
+        BoardPosition position = BoardUI.PositionFromVector(mousePos);
+       
         if (currentState == InputState.None) {
-            HandlePieceSelection(mousePos);
+            HandlePieceSelection(position);
         } else if (currentState == InputState.PieceDragged) {
-            HandleDragMovementNew(mousePos);
-        }
+            HandleDragging(mousePos);
+        } 
+        /*else if (currentState == InputState.PieceSelected) {
+            HandlePiecePlacement();
+        }*/
 
         if (Input.GetMouseButtonDown(1)) {
             CancelPieceSelection();
         }
+
     }
 
 
-    /* TODO: FIX THIS HORRENDOUS CODE. Return stuff instead of altering state, and give arguments to functions instead of fetching from state. */
-
-    void HandlePieceSelection(BoardPosition clickedPosition) {
+    private void HandlePieceSelection(BoardPosition position) {
         if (Input.GetMouseButtonDown(0)) {
+            // Ensure the position is valid within the board, and the piece has same color as the player to move.
+            if (position != null) { 
+                int square = BoardUtils.SquareFrom(position);
+                if (Piece.IsColor(board.PieceAt(square), board.ColorToMove)) {
 
-            // Compute valid moves for selected piece and mark as dragging piece
-            Piece selectedPiece = board.PieceAt(clickedPosition);
-            // Ensure pieces only move on their own turn.
-            // && selectedPiece.PieceColor() == board.colorToMove
-            if (selectedPiece != null && selectedPiece.PieceColor() == board.colorToMove) {
-                List<Move> validMoves = board.moveGen.GenerateValidMoves(selectedPiece, board);
-                boardUI.HighlightValidSquares(selectedPiece, validMoves);
-                currentState = InputState.PieceDragged;
+                    // Highlight the selected square - display all legal moves - set input state to dragging piece
+                    boardUI.HighLightLegalMoves();
+                    boardUI.HighlightSelectedSquare(position);
+                    currentState = InputState.PieceDragged;
+                    selectedPos = position;
+                    Debug.Log("Selected pos is: " + position);
+                }
             }
-            // Mark selected square as where we clicked
-            selectedSquare = clickedPosition;
-
         }
     }
 
-    void HandleDragMovementNew(BoardPosition targetSquare) {
+    private void HandleDragging(Vector2 mousePos) {
+        boardUI.DragPiece(selectedPos, mousePos); 
+
         if (Input.GetMouseButtonUp(0)) {
-            HandlePiecePlacementNew(selectedSquare, targetSquare);
+            HandlePiecePlacement(mousePos);
         }
+
     }
 
-    /* Lovely code innit? */
-    private void HandlePiecePlacementNew(BoardPosition fromSquare, BoardPosition targetSquare) {
-        Piece heldPiece = board.PieceAt(fromSquare);
-        Move tryingMove;
+    /* Handles piece placement from selectedSquare to the square clicked on from mousePos */
+    private void HandlePiecePlacement(Vector2 mousePos) {
+        BoardPosition targetPosition = BoardUI.PositionFromVector(mousePos);
 
-        if (Move.IsCastleQueenSideMove(fromSquare, targetSquare)) {
-            tryingMove = new Move(fromSquare, targetSquare, Move.MoveType.QueenCastle);
-        } else if (Move.IsCastleKingSideMove(fromSquare, targetSquare)) {
-            //Debug.Log("King castle trying move");
-            tryingMove = new Move(fromSquare, targetSquare, Move.MoveType.KingCastle);
-        } else if (Move.IsPawnDoubleMove(heldPiece, fromSquare, targetSquare)) {
-            tryingMove = new Move(fromSquare, targetSquare, Move.MoveType.PawnDoubleMove);
-        } else if (Move.IsEnPassantCapture(heldPiece, board.enPassantPawn, fromSquare, targetSquare)) {
-            Debug.Log("Trying move is en passant capture");
-            tryingMove = new Move(fromSquare, targetSquare, Move.MoveType.EnPassantCapture);
-        }
-        
-        else {
-            tryingMove = new Move(fromSquare, targetSquare);
-        }
+        // If target is same as selected, we must handle click piece...
 
-        TryMakeMove(heldPiece, tryingMove);
-    }
-
-
-    private void TryMakeMove(Piece piece, Move move) {
-        List<Move> validMoves = board.moveGen.GenerateValidMoves(piece, board);
-
-        // If a move is valid, make it - else cancel piece selection.
-        if (!validMoves.Contains(move)) {
-            //Debug.Log("Move invalid");
+        // Clicking outsite board leads to cancel piece selection
+        if (targetPosition == null)
             CancelPieceSelection();
-        } else {
-            board.MakeMove(piece, move);
-            boardUI.ResetHighlightedSquare();
 
-        }
-        currentState = InputState.None;
+
+        int targetSquare = BoardUtils.SquareFrom(targetPosition);
+        // If clicking at own piece again, handle piece selection again for new piece... TODO
+
+        TryMakeMove(selectedPos, targetPosition);
     }
 
+
+    void TryMakeMove(BoardPosition selectedPos, BoardPosition targetPos) {
+
+        // TODO: Handle validity of move - we only send valid moves to the board, i.e. the board expects moves to be valid.
+        // Handle other cases such as promotion of pawn
+
+        int startSquare = BoardUtils.SquareFrom(selectedPos);
+        int targetSquare = BoardUtils.SquareFrom(targetPos);
+
+        /*
+            The strategy for move stuff is as follows:
+            - We generate the valid moves for the position
+            - We loop through them all
+            - For each move, if startSquare and targetSquare is the same, select this move and call board.MakeMove on this move.
+            - If we do like this, we can just search through the moves, spot them on their squares and avoid dealing with special move types like checking for castle and
+                en passant an so forth here. We can just do that in the move function.
+         */
+
+        // TODO: For now, we just always allow the move
+        Move move = new Move(startSquare, targetSquare);
+        board.MakeMove(move);
+        currentState = InputState.None;
+        boardUI.DeselectSquare(selectedPos);
+        
+
+    }
 
     void CancelPieceSelection() {
+        // TODO: Deselect squares.
+        // Reset piece position for dragging.
+
         currentState = InputState.None;
-        // Maybe this gets called on all clicks also? There's a lot of clean up to do in this project if you ever feel like it.
-        //Debug.Log("Resetting square " + selectedSquare);
-        boardUI.ResetPiecePosition(selectedSquare);
-        boardUI.ResetHighlightedSquare();
-    }
-
-    BoardPosition BoardPosFromMouse() {
-        Vector2 mousePosRaw = cam.ScreenToWorldPoint(Input.mousePosition);
-        Vector2 mousePos = mousePosRaw + offset;
-        // Get the position on the board. 
-        return new BoardPosition((int)Math.Floor(mousePos.x), (int)Math.Floor(mousePos.y));
-    }
-
+        boardUI.DeselectSquare(selectedPos);
+        boardUI.ResetPiecePosition(selectedPos);
+    }    
 
 }
-

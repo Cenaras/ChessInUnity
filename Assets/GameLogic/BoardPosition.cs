@@ -1,33 +1,37 @@
-﻿
-// Magic for records to work
-namespace System.Runtime.CompilerServices {
-    internal static class IsExternalInit { }
-}
-// Maybe rework this and remove it instead of having to write new BoardPosition every time...
-public record BoardPosition(int file, int rank) {
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
 
-    public bool IsValidPosition() {
-        return (rank >= 0 && rank <= 7 && file >= 0 && file <= 7);
+public class BoardPosition {
+
+
+    public int File { get; }
+    public int Rank { get; }
+
+    public BoardPosition(int file, int rank) {
+        this.File = file;
+        this.Rank = rank;
     }
 
     public override string ToString() {
-        return $"[{file}, {rank}]";
+        return $"[{FilePretty[File]}{Rank+1}]";
     }
 
-    public static BoardPosition Add(BoardPosition left, BoardPosition right) {
-        return new BoardPosition(left.file + right.file, left.rank + right.rank);
+    private static Dictionary<int, char> FilePretty = new Dictionary<int, char>() {
+        {0, 'A'},
+        {1, 'B' },
+        {2, 'C'},
+        {3, 'D' },
+        { 4, 'E'},
+        { 5, 'F'},
+        { 6, 'G'},
+        { 7, 'H'},
+    };
+
+
+    public bool IsWhiteSquare() {
+        return (File + Rank) % 2 != 0;
     }
 
-    public static BoardPosition ScalarAdd(BoardPosition pos, int scalar) {
-        return new BoardPosition(pos.file + scalar, pos.rank + scalar);
 
-    }
-
-    public static BoardPosition ScalarMult(BoardPosition pos, int scalar) {
-        return new BoardPosition(pos.file * scalar, pos.rank * scalar);
-    }
-
-    public static bool Equals(BoardPosition one, BoardPosition two) {
-        return (one.file == two.file) && (one.rank == two.rank);
-    }
 }

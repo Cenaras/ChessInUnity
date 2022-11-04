@@ -8,7 +8,13 @@ public class BoardTheme : ScriptableObject
     public Color whiteSquareColor;
     public Color blackSquareColor;
     public Color highlightSquareColor;
-    public Color lastMoveColor;
+    public Color selectedSquareColor;
+
+
+
+    public Color ColorForSquare(BoardPosition position) {
+        return position.IsWhiteSquare() ? whiteSquareColor : blackSquareColor;
+    }
 
 
     /*[System.Serializable]
