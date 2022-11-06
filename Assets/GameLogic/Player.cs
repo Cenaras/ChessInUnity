@@ -11,6 +11,8 @@ public class Player {
     private BoardUI boardUI;
     private Board board;
 
+    private MoveGen moveGen;
+
     // Store this value in state only once when a square is clicked
     private BoardPosition selectedPos; 
 
@@ -20,6 +22,8 @@ public class Player {
 
         boardUI = UnityEngine.Object.FindObjectOfType<BoardUI>();
         this.board = board;
+        moveGen = board.moveGen;
+
     }
 
 
@@ -107,6 +111,31 @@ public class Player {
         int startSquare = BoardUtils.SquareFrom(selectedPos);
         int targetSquare = BoardUtils.SquareFrom(targetPos);
 
+        List<Move> legalMoves = moveGen.LegalMoves(board);
+
+        bool legalMove = false;
+        Move chosenMove = new();
+
+        foreach (Move move in legalMoves) {
+            if (move.StartSquare == startSquare && move.TargetSquare == targetSquare) {
+                // Trying move is valid. Mark as valid and stop looking
+                legalMove = true;
+                chosenMove = move;
+            }
+        }
+
+        Debug.Log("Start: " + startSquare + ", target: " + targetSquare);
+
+        // If move was legal, play the move and update state, else cancel piece selection
+        if (legalMove) {
+            board.MakeMove(chosenMove);
+            currentState = InputState.None;
+            boardUI.DeselectSquare(selectedPos);
+        } else {
+            CancelPieceSelection();
+        }
+
+
         /*
             The strategy for move stuff is as follows:
             - We generate the valid moves for the position
@@ -117,10 +146,10 @@ public class Player {
          */
 
         // TODO: For now, we just always allow the move
-        Move move = new Move(startSquare, targetSquare);
-        board.MakeMove(move);
-        currentState = InputState.None;
-        boardUI.DeselectSquare(selectedPos);
+        //Move move = new Move(startSquare, targetSquare);
+        //board.MakeMove(move);
+        //currentState = InputState.None;
+        //boardUI.DeselectSquare(selectedPos);
         
 
     }

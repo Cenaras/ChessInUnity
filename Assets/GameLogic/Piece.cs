@@ -54,4 +54,10 @@ public static class Piece {
     public static int GetColor(int piece) {
         return piece & colorMask;
     }
+
+    public static int OppositeColor(int piece) {
+        if (GetColor(piece) == White) return Black;
+        return White;
+    }
+
 }
