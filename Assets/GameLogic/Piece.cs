@@ -51,6 +51,7 @@ public static class Piece {
         return piece & typeMask;
     }
 
+    // NOTE: If we call this with a Piece.None, we might not get what we desire.
     public static int GetColor(int piece) {
         return piece & colorMask;
     }

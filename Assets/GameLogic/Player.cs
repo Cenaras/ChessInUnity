@@ -7,7 +7,11 @@ using UnityEngine.PlayerLoop;
 public class Player {
     private Camera camera;
     private InputState currentState;
-    
+
+    // Register an event triggered when the player makes a move. The GameManager subscribes to this, to update the turns after a move is made.
+    public static Action<Move> onMoveMade;
+
+
     private BoardUI boardUI;
     private Board board;
 
@@ -70,7 +74,6 @@ public class Player {
                     boardUI.HighlightSelectedSquare(position);
                     currentState = InputState.PieceDragged;
                     selectedPos = position;
-                    Debug.Log("Selected pos is: " + position);
                 }
             }
         }
@@ -124,13 +127,15 @@ public class Player {
             }
         }
 
-        Debug.Log("Start: " + startSquare + ", target: " + targetSquare);
-
-        // If move was legal, play the move and update state, else cancel piece selection
+        // If move was legal, notify the GameManager to play the move and update state, else cancel piece selection
         if (legalMove) {
-            board.MakeMove(chosenMove);
             currentState = InputState.None;
             boardUI.DeselectSquare(selectedPos);
+
+            // If someone subscribes to our onMoveMade event, trigger the code for it here - e.g. the GameMangager gets notified here.
+            onMoveMade?.Invoke(chosenMove);
+
+
         } else {
             CancelPieceSelection();
         }
@@ -143,15 +148,7 @@ public class Player {
             - For each move, if startSquare and targetSquare is the same, select this move and call board.MakeMove on this move.
             - If we do like this, we can just search through the moves, spot them on their squares and avoid dealing with special move types like checking for castle and
                 en passant an so forth here. We can just do that in the move function.
-         */
-
-        // TODO: For now, we just always allow the move
-        //Move move = new Move(startSquare, targetSquare);
-        //board.MakeMove(move);
-        //currentState = InputState.None;
-        //boardUI.DeselectSquare(selectedPos);
-        
-
+         */        
     }
 
     void CancelPieceSelection() {

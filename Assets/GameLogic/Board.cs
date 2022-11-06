@@ -43,7 +43,7 @@ public class Board
         int movePiece = PieceAt(move.StartSquare);
         Squares[move.StartSquare] = Piece.None;
         Squares[move.TargetSquare] = movePiece;
-        
+        ColorToMove = Piece.OppositeColor(ColorToMove);
     
     }
     //public void UnmakeMove(Move move) { }

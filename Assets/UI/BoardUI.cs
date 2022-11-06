@@ -15,7 +15,6 @@ public class BoardUI : MonoBehaviour {
     MeshRenderer[,] squareRenderers;
     // Start is called before the first frame update
     void Awake() {
-        Debug.Log("Generate Board UI");
         GenerateBoardUI();
     }
 
@@ -59,7 +58,7 @@ public class BoardUI : MonoBehaviour {
         }
     }
 
-
+    /* Iterate through all squares and update the sprite for them */
     public void UpdatePosition(Board board) {
         for (int rank = 0; rank < 8; rank++) {
             for (int file = 0; file < 8; file++) {
