@@ -2,13 +2,28 @@
 
 public struct Move {
 
+    public enum Type {
+        Normal,
+        KingCastle,
+        QueenCastle,
+        EnPassant,
+    }
+
     public Move(int startSquare, int targetSquare) {
         StartSquare = startSquare;
         TargetSquare = targetSquare;
-    
+        MoveType = Type.Normal;
     }
+
+    public Move(int startSquare, int targetSquare, Type moveType) {
+        StartSquare = startSquare;
+        TargetSquare = targetSquare;
+        MoveType = moveType;
+    }
+
 
     public int StartSquare { get; }
     public int TargetSquare { get; }
+    public Type MoveType { get; }
 
 }

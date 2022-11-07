@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Runtime.ExceptionServices;
 using System.Text;
@@ -18,6 +19,11 @@ public static class BoardUtils {
     public static readonly int RANK_7 = 6;
     public static readonly int RANK_8 = 7;
 
+    private static readonly int G1 = 6;
+    private static readonly int G8 = 62;
+    
+    private static readonly int C1 = 2;
+    private static readonly int C8 = 58;
 
     // Naive implementation for simplicity
     public static int RankOfSquare(int square) {
@@ -30,6 +36,16 @@ public static class BoardUtils {
         if (square < 56) return RANK_7;
         return RANK_8;
     }
+
+    public static bool IsQueenSideCastleSquare(int square, int color) {
+        if (color == Piece.White) return square == C1;
+        else return square == C8;
+    }
+    public static bool IsKingSideCastleSquare(int square, int color) {
+        if (color == Piece.White) return square == G1;
+        else return square == G8;
+    }
+
 
     public static int PawnStartRank(int color) {
         if (color == Piece.White) return RANK_2;

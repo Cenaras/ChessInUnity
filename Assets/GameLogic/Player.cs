@@ -26,7 +26,7 @@ public class Player {
 
         boardUI = UnityEngine.Object.FindObjectOfType<BoardUI>();
         this.board = board;
-        moveGen = board.moveGen;
+        moveGen = board.MoveGen;
 
     }
 

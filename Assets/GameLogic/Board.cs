@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Scripting.APIUpdating;
 
@@ -16,21 +17,31 @@ public class Board
 
     // For move generation, store the possible offset directions in an array and iterate through it for each piece.
 
+    // Two obvious choices: Either the game history state stores the previous state, or the board has a stack of histories and pushes new and pops when undoing moves.
+
+    // The current state describes the state after a move has been made. The history describes all previous game states in a stack like manner
+    // Each time a move is made, the state is updated and the previous state is pushed into the history. When undoing moves, the stack is updated back to the previous.
+    public GameState currentState;
+    public Stack<GameState> history = new();
+
     private int[] Squares;
 
     public int ColorToMove;
 
-    public MoveGen moveGen { get; }
+    public MoveGen MoveGen { get; }
 
 
     public Board(int[] Squares) {
         this.Squares = Squares;
         ColorToMove = Piece.White;
-        moveGen = new MoveGen();
+        MoveGen = new MoveGen();
+        currentState = GameState.Initialize();
+        Debug.Log(currentState);
 
     }
 
-    /* The board should have the following 
+    /* 
+       The board should have the following 
         - MakeMove which takes a move as input and performs it
         - Unmake move which takes a move as input an undoes it
         - 64 squares for our pieces
@@ -40,6 +51,10 @@ public class Board
 
     // Most likely needs the state info struct passed as well.
     public void MakeMove(Move move) {
+
+        GameState previous = currentState.Clone();
+        history.Push(previous);
+
         int movePiece = PieceAt(move.StartSquare);
         Squares[move.StartSquare] = Piece.None;
         Squares[move.TargetSquare] = movePiece;

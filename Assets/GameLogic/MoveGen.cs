@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices.WindowsRuntime;
 using UnityEngine;
 
@@ -11,14 +12,15 @@ public class MoveGen {
     private static readonly int[] bishopDirections = new int[] { 7, -7, 9, -9 };
     private static readonly int[] queenDirections = new int[] { -1, 1, -8, 8, 7, -7, 9, -9 };
     private static readonly int[] knightDirections = new int[] { 17, -17, 15, -15, 10, -10, 6, -6 };
+    private static readonly int[] kingDirections = new int[] { -1, 1, -8, 8, -7, 7, -9, 9};
     // TODO: Pawns also?
 
     // TODO: Maybe make the map from piece to moves into a 2D array for memory efficiency?
-    private static readonly Dictionary<int, int[]> directionsForPieceType = new Dictionary<int, int[]>() {
+    private static readonly Dictionary<int, int[]> directionsForPieceType = new() {
         { Piece.Rook, rookDirections},
         { Piece.Bishop, bishopDirections},
         { Piece.Queen, queenDirections},
-        { Piece.King, queenDirections},
+        { Piece.King, kingDirections},
         { Piece.Knight, knightDirections},
     };
 
@@ -125,8 +127,63 @@ public class MoveGen {
         return moves;
     }
 
+    /* When optimizing this, compute visible squares by enemy and only allow move if that square is not in the list. */
     private List<Move> GenerateKingMoves(int king, int[] directions, int startSquare, Board board) {
-        return new List<Move>();
+        List<Move> moves = new List<Move>();
+
+        int friendlyColor = Piece.GetColor(king);
+
+        for (int i = 0; i < directions.Length; i++) {
+            int targetSquare = startSquare + directions[i];
+            // Valid square on the board
+            if (targetSquare >= 0 && targetSquare <= 63) {
+
+                int pieceAtTarget = board.PieceAt(targetSquare);
+                
+                // If empty or enemy present, allow the move - TODO: Only allow if square is not controlled by enemy
+                if (!Piece.IsColor(pieceAtTarget, friendlyColor)) moves.Add(new Move(startSquare, targetSquare));
+            }
+        }
+
+        /* Handle Castling separetly to distingush between normal and special moves. */
+
+        // Small optimization - get currentState for castle rights and only enter loop of one of them is true.
+
+        // Castling directions
+        for (int i = -2; i <= 2; i += 4) {
+
+            int targetSquare = startSquare + i;
+            int pieceAtTarget = board.PieceAt(targetSquare);
+
+            // TODO: Find a cleaner way instead of checking on this condition each time perhaps?
+            if (targetSquare >= 0 && targetSquare <= 63) {
+
+                /* KingSide Castling */
+                bool canCastleKingSide = friendlyColor == Piece.White ? board.currentState.WhiteCastleKingSide : board.currentState.BlackCastleKingSide;
+                if (BoardUtils.IsKingSideCastleSquare(targetSquare, friendlyColor) && canCastleKingSide) {
+                    // Castle if no pieces are between king and rook, and not castling through check
+                    int rightOfKing = board.PieceAt(targetSquare - 1);
+                    bool clearPath = rightOfKing == Piece.None && pieceAtTarget == Piece.None;
+                    // TODO: Also ensure not castling through check
+                    if (clearPath) {
+                        moves.Add(new Move(startSquare, targetSquare, Move.Type.KingCastle));
+                    }
+                }
+
+                /* QueenSide Castling */
+                bool canCastleQueenSide = friendlyColor == Piece.White ? board.currentState.WhiteCastleQueenSide : board.currentState.BlackCastleQueenSide;
+                if (BoardUtils.IsQueenSideCastleSquare(targetSquare, friendlyColor) && canCastleQueenSide) {
+                    int leftOfKing = board.PieceAt(targetSquare + 1);
+                    int rightOfRook = board.PieceAt(targetSquare - 1);
+                    bool clearPath = pieceAtTarget == Piece.None && leftOfKing == Piece.None && rightOfRook == Piece.None;
+                    // TODO: Also ensure not castling through check
+                    if (clearPath) moves.Add(new Move(startSquare, targetSquare, Move.Type.QueenCastle));
+                }
+            }
+        }
+
+
+        return moves;
     }
 
     private List<Move> GenerateKnightMoves(int knight, int[] directions, int startSquare, Board board) {
