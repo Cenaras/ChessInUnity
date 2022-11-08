@@ -6,6 +6,10 @@ using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices.WindowsRuntime;
 using UnityEngine;
 
+// Idea: Keep an array here of the squares a player targets.
+// We can do this while iterating over the valid moves for the current player and maybe update this list as we go?
+// Worst case do a 2nd scan. Depends on what data we need (e.g. relvant data is squares opponent controls, not ourselves so maybe save the data from prev search?)
+// But this has to work if we also do deeper searches and it might not, think about it...
 public class MoveGen {
     // {1, -1, 8, -8} for rook movement. {7, -7, 9, -9} for bishop movements
     private static readonly int[] rookDirections = new int[] { -1, 1, -8, 8 };
@@ -95,13 +99,11 @@ public class MoveGen {
             bool atStartingRank = rankOfPawn == BoardUtils.PawnStartRank(colorOfPawn);
 
             if (board.PieceAt(twoInFront) == Piece.None && atStartingRank) {
-                moves.Add(new Move(startSquare, twoInFront));
+                moves.Add(new Move(startSquare, twoInFront, Move.Type.PawnDouble));
             }
 
 
         }
-
-
 
 
         /* CAPTURE FOR PAWN */
@@ -119,10 +121,13 @@ public class MoveGen {
                 moves.Add(new Move(startSquare, targetSquare));
             }
 
+            // For en passant: We store the ep square in the board history thing and check if target square is that.
+            int epSquare = board.currentState.EnPassantSquare;
+            if (targetSquare == epSquare) {
+                moves.Add(new Move(startSquare, targetSquare, Move.Type.EnPassant));
+            }
+
         }
-
-
-        // For en passant: We store the ep square in the board history thing and check if target square is that.
 
         return moves;
     }
@@ -153,10 +158,10 @@ public class MoveGen {
         for (int i = -2; i <= 2; i += 4) {
 
             int targetSquare = startSquare + i;
-            int pieceAtTarget = board.PieceAt(targetSquare);
-
+            
             // TODO: Find a cleaner way instead of checking on this condition each time perhaps?
             if (targetSquare >= 0 && targetSquare <= 63) {
+                int pieceAtTarget = board.PieceAt(targetSquare);
 
                 /* KingSide Castling */
                 bool canCastleKingSide = friendlyColor == Piece.White ? board.currentState.WhiteCastleKingSide : board.currentState.BlackCastleKingSide;

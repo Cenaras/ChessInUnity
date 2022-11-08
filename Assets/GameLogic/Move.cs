@@ -7,6 +7,7 @@ public struct Move {
         KingCastle,
         QueenCastle,
         EnPassant,
+        PawnDouble,
     }
 
     public Move(int startSquare, int targetSquare) {

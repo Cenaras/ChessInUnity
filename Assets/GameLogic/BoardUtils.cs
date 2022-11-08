@@ -21,9 +21,25 @@ public static class BoardUtils {
 
     private static readonly int G1 = 6;
     private static readonly int G8 = 62;
-    
+
     private static readonly int C1 = 2;
     private static readonly int C8 = 58;
+
+    public static readonly int H1 = 7;
+    public static readonly int H8 = 63;
+
+    public static readonly int A1 = 0;
+    public static readonly int A8 = 56;
+
+
+    internal static int RookKingStartSquare(int friendlyColor) {
+        if (friendlyColor == Piece.White) return H1;
+        else return H8;
+    }
+    internal static int RookQueenStartSquare(int friendlyColor) {
+        if (friendlyColor == Piece.White) return A1;
+        else return A8;
+    }
 
     // Naive implementation for simplicity
     public static int RankOfSquare(int square) {
