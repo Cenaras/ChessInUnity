@@ -34,11 +34,18 @@ public class MoveGen {
 
     /* Generate legal moves for a position */
     public List<Move> LegalMoves(Board board) {
+        // TODO: Figure out if MakeMove or UnmakeMove or w/e is wrong and fix...
 
         // For now, naïve implementation - iterate over all pseudo legal moves. Generate all responses, check if a response can capture king and if not, add move
         /*List<Move> legalMoves = new();
         List<Move> pseudoLegal = PseudoLegalMoves(board);
 
+        // I THINK THE ISSUE IS: We play the move, AND THEN look at valid moves - e.g. white plays 1.e4 and after that we look at white moves.
+
+        Debug.Log("Initial moves: " + pseudoLegal.Count);
+        //foreach (Move m in pseudoLegal) Debug.Log(m);
+        
+        
         foreach (Move pseudoMove in pseudoLegal) {
             board.MakeMove(pseudoMove);
             List<Move> responses = PseudoLegalMoves(board);
@@ -48,7 +55,7 @@ public class MoveGen {
             board.UnmakeMove(pseudoMove);
         }
 
-        return legalMoves;*/
+        return legalMoves; */
         return PseudoLegalMoves(board);
     }
 
@@ -217,8 +224,17 @@ public class MoveGen {
             // Knights can jump over pieces so we only need to add the valid positions
 
             int targetSquare = startSquare + directions[i];
+
+            // Ensure knight moved max 2 on x or y (to avoid wrapping around the board)
+            int startRank = startSquare / 8;
+            int startFile = startSquare - startRank * 8;
+
+            int endRank = targetSquare / 8;
+            int endFile = targetSquare - endRank * 8;
+            int maxDist = Math.Max(Math.Abs(endRank - startRank), Math.Abs(endFile - startFile));
+
             // For now, ensure position is on board like this. TODO: Generalize this.
-            if (targetSquare >= 0 && targetSquare <= 63) {
+            if (maxDist == 2 && targetSquare >= 0 && targetSquare <= 63) {
                 int targetPiece = board.PieceAt(targetSquare);
 
                 // If piece is same color, not a valid move, else add it

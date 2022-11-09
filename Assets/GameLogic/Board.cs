@@ -50,13 +50,20 @@ public class Board
     // Most likely needs the state info struct passed as well.
     /* Making a move on the board. The MoveGen has already ensured this move is valid and thus we do not need any assertions on the game state. */
     public void MakeMove(Move move) {
-
         // Clone and push the game state before this move to the stack to allow for retrieval if move is undone.
         GameState previous = currentState.Clone();
         history.Push(previous);
 
         int movePiece = PieceAt(move.StartSquare);
         int friendlyColor = Piece.GetColor(movePiece);
+
+        /* If a piece was on the target square, mark it as being captured. Else mark no piece as captured */
+        int capturedPiece = PieceAt(move.TargetSquare);
+        if (capturedPiece != Piece.None) {
+            currentState.CapturedPiece = capturedPiece;
+        } else {
+            currentState.CapturedPiece = Piece.None;
+        }
 
         /* Handle Rook movement from castling */
         if (move.MoveType == Move.Type.KingCastle) {
@@ -88,15 +95,6 @@ public class Board
             int capturedPawnSquare = friendlyColor == Piece.White ? move.TargetSquare - 8 : move.TargetSquare + 8;
             Squares[capturedPawnSquare] = Piece.None;
         }
-
-        /* If a piece was on the target square, mark it as being captured. Else mark no piece as captured */
-        int capturedPiece = PieceAt(move.TargetSquare);
-        if (capturedPiece != Piece.None) {
-            currentState.CapturedPiece = capturedPiece;
-        } else {
-            currentState.CapturedPiece = Piece.None;
-        }
-
 
         /* Update position of king if kingmove */
         if (Piece.Type(movePiece) == Piece.King) {
@@ -131,7 +129,6 @@ public class Board
     /* Unmakes a move, restoring the board state and current game state to that of the previous position. Since we're storing the previous state in the stack, this
      * method does not have to worry about anything else that popping the stack to previous state. */
     public void UnmakeMove(Move move) {
-
         // TODO: Maybe we can merge this together with MakeMove to have a simple method instead of having two. Right now we have code duplication tendencies.
 
         // The move is the one made on the board so we flip the from and to squares

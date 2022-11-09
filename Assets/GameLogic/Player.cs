@@ -124,6 +124,8 @@ public class Player {
                 // Trying move is valid. Mark as valid and stop looking
                 legalMove = true;
                 chosenMove = move;
+                Debug.Log("Chosen move is: " + move);
+                break;
             }
         }
 
