@@ -59,11 +59,10 @@ public class Board
         int friendlyColor = Piece.GetColor(movePiece);
 
         /* Handle Rook movement from castling */
-
         if (move.MoveType == Move.Type.KingCastle) {
-            MoveRookForCastle(Move.Type.KingCastle, friendlyColor, move.TargetSquare - 1);
+            MoveRookForCastle(Move.Type.KingCastle, friendlyColor, move.TargetSquare - 1, false);
         } else if (move.MoveType == Move.Type.QueenCastle) {
-            MoveRookForCastle(Move.Type.QueenCastle, friendlyColor, move.TargetSquare + 1);
+            MoveRookForCastle(Move.Type.QueenCastle, friendlyColor, move.TargetSquare + 1, false);
         }
 
 
@@ -90,6 +89,22 @@ public class Board
             Squares[capturedPawnSquare] = Piece.None;
         }
 
+        /* If a piece was on the target square, mark it as being captured. Else mark no piece as captured */
+        int capturedPiece = PieceAt(move.TargetSquare);
+        if (capturedPiece != Piece.None) {
+            currentState.CapturedPiece = capturedPiece;
+        } else {
+            currentState.CapturedPiece = Piece.None;
+        }
+
+
+        /* Update position of king if kingmove */
+        if (Piece.Type(movePiece) == Piece.King) {
+            if (friendlyColor == Piece.White) currentState.WhiteKingSquare = move.TargetSquare;
+            else currentState.BlackKingSquare = move.TargetSquare;
+        }
+
+
         Squares[move.StartSquare] = Piece.None;
         Squares[move.TargetSquare] = movePiece;
         ColorToMove = Piece.OppositeColor(ColorToMove);
@@ -97,17 +112,69 @@ public class Board
     }
 
     /* Moves the rooks in a castle move to the target square. */
-    private void MoveRookForCastle(Move.Type castleType, int friendlyColor, int rookTargetSquare) {
-        int rookStartSquare = castleType == Move.Type.KingCastle ? BoardUtils.RookKingStartSquare(friendlyColor) : BoardUtils.RookQueenStartSquare(friendlyColor);
+    private void MoveRookForCastle(Move.Type castleType, int friendlyColor, int rookTargetSquare, bool reverseMove) {
+        bool kingSide = castleType == Move.Type.KingCastle;
+        int rookStartSquare = kingSide ? BoardUtils.RookKingStartSquare(friendlyColor) : BoardUtils.RookQueenStartSquare(friendlyColor);
         int rookPiece = PieceAt(rookStartSquare);
-        Squares[rookStartSquare] = Piece.None;
-        Squares[rookTargetSquare] = rookPiece;
+
+        // If reversing move in Unmake move, do opposite castling.
+        if (reverseMove) {
+            Squares[rookStartSquare] = rookPiece;
+            Squares[rookTargetSquare] = Piece.None;
+        } else {
+            Squares[rookStartSquare] = Piece.None;
+            Squares[rookTargetSquare] = rookPiece;
+        }
+        
     }
 
-    /* Unmakes a move, restoring the board state and current game state to that of the previous position. */
-    //public void UnmakeMove(Move move) { }
+    /* Unmakes a move, restoring the board state and current game state to that of the previous position. Since we're storing the previous state in the stack, this
+     * method does not have to worry about anything else that popping the stack to previous state. */
+    public void UnmakeMove(Move move) {
+
+        // TODO: Maybe we can merge this together with MakeMove to have a simple method instead of having two. Right now we have code duplication tendencies.
+
+        // The move is the one made on the board so we flip the from and to squares
+        int startSquare = move.TargetSquare;
+        int targetSquare = move.StartSquare;
+        int movePiece = PieceAt(startSquare);
+        int friendlyColor = Piece.GetColor(movePiece);
+
+        // Before restoring the state, we retrieve the captured piece so we can place it
+        int restoredPiece = currentState.CapturedPiece;
+
+        // Restore the current state to the state from the previous move
+        currentState = history.Pop();
+
+        /* Undoing moving of rook in castle */
+        if (move.MoveType == Move.Type.KingCastle) {
+            MoveRookForCastle(Move.Type.KingCastle, friendlyColor, move.TargetSquare - 1, true);
+        } else if (move.MoveType == Move.Type.QueenCastle) {
+            MoveRookForCastle(Move.Type.QueenCastle, friendlyColor, move.TargetSquare + 1, true);
+        }
+
+        /* Undo capture */
+        if (restoredPiece != Piece.None) {
+            // EP is handled differently from normal captures.
+            if (move.MoveType == Move.Type.EnPassant) {
+                int epPawnSquare = friendlyColor == Piece.White ? startSquare - 8 : startSquare + 8;
+                Squares[epPawnSquare] = restoredPiece;
+            } else {
+                Squares[startSquare] = restoredPiece;
+            }
+        }
+        
+        // Moving piece back to start position
+        Squares[startSquare] = Piece.None;
+        Squares[targetSquare] = movePiece;
+        ColorToMove = Piece.OppositeColor(ColorToMove);
+    }
 
     public int PieceAt(int square) {
         return Squares[square];
+    }
+
+    public int KingSquareForColor(int color) {
+        return color == Piece.White ? currentState.WhiteKingSquare : currentState.BlackKingSquare;
     }
 }

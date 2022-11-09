@@ -26,5 +26,7 @@ public struct Move {
     public int StartSquare { get; }
     public int TargetSquare { get; }
     public Type MoveType { get; }
-
+    public override string ToString() {
+        return $"{StartSquare} --> {TargetSquare}";
+    }
 }

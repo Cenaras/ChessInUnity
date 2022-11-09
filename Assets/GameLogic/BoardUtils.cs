@@ -31,6 +31,8 @@ public static class BoardUtils {
     public static readonly int A1 = 0;
     public static readonly int A8 = 56;
 
+    public static readonly int E1 = 4;
+    public static readonly int E8 = 60;
 
     internal static int RookKingStartSquare(int friendlyColor) {
         if (friendlyColor == Piece.White) return H1;

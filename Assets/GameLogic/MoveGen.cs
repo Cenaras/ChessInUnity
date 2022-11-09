@@ -34,6 +34,21 @@ public class MoveGen {
 
     /* Generate legal moves for a position */
     public List<Move> LegalMoves(Board board) {
+
+        // For now, naïve implementation - iterate over all pseudo legal moves. Generate all responses, check if a response can capture king and if not, add move
+        /*List<Move> legalMoves = new();
+        List<Move> pseudoLegal = PseudoLegalMoves(board);
+
+        foreach (Move pseudoMove in pseudoLegal) {
+            board.MakeMove(pseudoMove);
+            List<Move> responses = PseudoLegalMoves(board);
+
+            // King was not capturable
+            if (!responses.Any(r => r.TargetSquare == board.KingSquareForColor(Piece.OppositeColor(board.ColorToMove)))) legalMoves.Add(pseudoMove);
+            board.UnmakeMove(pseudoMove);
+        }
+
+        return legalMoves;*/
         return PseudoLegalMoves(board);
     }
 
@@ -84,6 +99,12 @@ public class MoveGen {
 
         int infront = startSquare + pawnDirection;
         int colorOfPawn = Piece.GetColor(pawn);
+        //bool validInfront = infront >= 0 && infront <= 64;
+
+        if (infront < 0 || infront > 64) {
+            Debug.Log($"Infront is {infront} for piece at start square {startSquare} of type {Piece.Type(pawn)}");
+        }
+
         // If square infront of pawn is empty
         if (board.PieceAt(infront) == Piece.None) {
 
@@ -101,8 +122,6 @@ public class MoveGen {
             if (board.PieceAt(twoInFront) == Piece.None && atStartingRank) {
                 moves.Add(new Move(startSquare, twoInFront, Move.Type.PawnDouble));
             }
-
-
         }
 
 
