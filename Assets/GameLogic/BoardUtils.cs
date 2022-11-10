@@ -9,6 +9,15 @@ using UnityEngine;
 
 public static class BoardUtils {
 
+    public static int North = 8;
+    public static int South = -8;
+    public static int East = 1;
+    public static int West = -1;
+    public static int NorthEast = 9;
+    public static int NorthWest = 7;
+    public static int SouthEast = -7;
+    public static int SouthWest = -9;
+
     public static string FenStartingPosition = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
     public static readonly int RANK_1 = 0;
     public static readonly int RANK_2 = 1;
@@ -34,6 +43,9 @@ public static class BoardUtils {
     public static readonly int E1 = 4;
     public static readonly int E8 = 60;
 
+    // First index is start square, second index is direction, result is number of squares to edge of board. Initialized in from GameManager
+    public static int[][] DistanceToEdge;
+
     internal static int RookKingStartSquare(int friendlyColor) {
         if (friendlyColor == Piece.White) return H1;
         else return H8;
@@ -53,6 +65,11 @@ public static class BoardUtils {
         if (square < 48) return RANK_6;
         if (square < 56) return RANK_7;
         return RANK_8;
+    }
+
+    public static int FileOfSquare(int square) {
+        int rank = RankOfSquare(square);
+        return square - rank * 8;
     }
 
     public static bool IsQueenSideCastleSquare(int square, int color) {
@@ -219,7 +236,35 @@ public static class BoardUtils {
         string spritePath = $"Sprites/{color}{id}";
 
         return Resources.Load<Sprite>(spritePath);
+    }
+    internal static void PrecomputeDistanceToEdge() {
+        // 64 possible from squares
+        DistanceToEdge = new int[64][];
 
+        for (int square = 0; square < 64; square++) {
+            // 8 directions for each square
+            DistanceToEdge[square] = new int[8];
 
+            // Compute file and rank for each square and use to compute distance to edge of board
+            int file = FileOfSquare(square);
+            int rank = RankOfSquare(square);
+
+            /* Distances to edge in the given direction */
+            int distNorth = 7 - rank;
+            int distSouth = rank;
+            int distEast = 7 - file;
+            int distWest = file;
+
+            /* Populate the array for the given square with computed information. Order is N, S, E, W, NE, NW, SE, SW*/
+            DistanceToEdge[square][0] = distNorth;
+            DistanceToEdge[square][1] = distSouth;
+            DistanceToEdge[square][2] = distEast;
+            DistanceToEdge[square][3] = distWest;
+
+            DistanceToEdge[square][4] = Math.Min(distNorth, distEast);
+            DistanceToEdge[square][5] = Math.Min(distNorth, distWest);
+            DistanceToEdge[square][6] = Math.Min(distSouth, distEast);
+            DistanceToEdge[square][7] = Math.Min(distSouth, distWest);
+        }
     }
 }

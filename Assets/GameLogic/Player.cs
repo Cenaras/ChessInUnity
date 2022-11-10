@@ -70,7 +70,7 @@ public class Player {
                 if (Piece.IsColor(board.PieceAt(square), board.ColorToMove)) {
 
                     // Highlight the selected square - display all legal moves - set input state to dragging piece
-                    boardUI.HighLightLegalMoves();
+                    boardUI.HighLightLegalMoves(board, position); // TODO: Can we generate valid moves here and then pass it so we avoid computing twice?
                     boardUI.HighlightSelectedSquare(position);
                     currentState = InputState.PieceDragged;
                     selectedPos = position;

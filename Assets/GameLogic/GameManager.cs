@@ -16,6 +16,7 @@ public class GameManager : MonoBehaviour
     void Start() {
         boardUI = FindObjectOfType<BoardUI>();
         NewGame();
+        BoardUtils.PrecomputeDistanceToEdge();
     }
 
     // Update is called once per frame
@@ -28,6 +29,9 @@ public class GameManager : MonoBehaviour
         board.MakeMove(move);
         boardUI.UpdatePosition(board);
         playerToMove = board.ColorToMove == Piece.White ? whitePlayer : blackPlayer;
+        boardUI.ResetHighlightedSquares(board);
+
+        //Debug.Log("###############\n" + board.currentState);
     }
 
     /* Creates a new game, creating new players a new board and subscribing to the OnMoveMade event */

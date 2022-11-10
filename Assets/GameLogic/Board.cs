@@ -50,6 +50,7 @@ public class Board
     // Most likely needs the state info struct passed as well.
     /* Making a move on the board. The MoveGen has already ensured this move is valid and thus we do not need any assertions on the game state. */
     public void MakeMove(Move move) {
+
         // Clone and push the game state before this move to the stack to allow for retrieval if move is undone.
         GameState previous = currentState.Clone();
         history.Push(previous);
@@ -106,7 +107,6 @@ public class Board
         Squares[move.StartSquare] = Piece.None;
         Squares[move.TargetSquare] = movePiece;
         ColorToMove = Piece.OppositeColor(ColorToMove);
-    
     }
 
     /* Moves the rooks in a castle move to the target square. */
@@ -140,9 +140,6 @@ public class Board
         // Before restoring the state, we retrieve the captured piece so we can place it
         int restoredPiece = currentState.CapturedPiece;
 
-        // Restore the current state to the state from the previous move
-        currentState = history.Pop();
-
         /* Undoing moving of rook in castle */
         if (move.MoveType == Move.Type.KingCastle) {
             MoveRookForCastle(Move.Type.KingCastle, friendlyColor, move.TargetSquare - 1, true);
@@ -159,12 +156,17 @@ public class Board
             } else {
                 Squares[startSquare] = restoredPiece;
             }
+            // No piece was captured - set piece at start to none
+        } else {
+            Squares[startSquare] = Piece.None;
         }
         
         // Moving piece back to start position
-        Squares[startSquare] = Piece.None;
         Squares[targetSquare] = movePiece;
         ColorToMove = Piece.OppositeColor(ColorToMove);
+
+        // Restore the current state to the state from the previous move
+        currentState = history.Pop();
     }
 
     public int PieceAt(int square) {

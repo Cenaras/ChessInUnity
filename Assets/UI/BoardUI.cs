@@ -83,9 +83,33 @@ public class BoardUI : MonoBehaviour {
         return null;
     }
 
-    internal void HighLightLegalMoves() {
-        
+    internal void HighLightLegalMoves(Board board, BoardPosition pos) {
+        // TODO: Might be able to pass list of moves instead of computing again here. Come back after simple movegen tests.
+
+        List<Move> legalMoves = board.MoveGen.LegalMoves(board);
+        foreach (Move m in legalMoves) {
+            //Debug.Log(m);
+            int rank = BoardUtils.RankOfSquare(m.StartSquare);
+            int file = BoardUtils.FileOfSquare(m.StartSquare);
+
+            int toFile = BoardUtils.FileOfSquare(m.TargetSquare);
+            int toRank = BoardUtils.RankOfSquare(m.TargetSquare);
+
+            if (pos.File == file && pos.Rank == rank) {
+                squareRenderers[toFile, toRank].material.color = boardTheme.highlightSquareColor;
+            }
+        }
     }
+
+    internal void ResetHighlightedSquares(Board board) {
+        Debug.Log("Resetting");
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                DeselectSquare(new BoardPosition(i, j));
+            }
+        }
+    }
+
 
     internal void HighlightSelectedSquare(BoardPosition position) {
         squareRenderers[position.File, position.Rank].material.color = boardTheme.selectedSquareColor;   

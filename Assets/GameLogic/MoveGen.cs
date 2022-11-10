@@ -11,12 +11,11 @@ using UnityEngine;
 // Worst case do a 2nd scan. Depends on what data we need (e.g. relvant data is squares opponent controls, not ourselves so maybe save the data from prev search?)
 // But this has to work if we also do deeper searches and it might not, think about it...
 public class MoveGen {
-    // {1, -1, 8, -8} for rook movement. {7, -7, 9, -9} for bishop movements
-    private static readonly int[] rookDirections = new int[] { -1, 1, -8, 8 };
-    private static readonly int[] bishopDirections = new int[] { 7, -7, 9, -9 };
-    private static readonly int[] queenDirections = new int[] { -1, 1, -8, 8, 7, -7, 9, -9 };
+    private static readonly int[] rookDirections = new int[] { BoardUtils.North, BoardUtils.South, BoardUtils.East, BoardUtils.West };
+    private static readonly int[] bishopDirections = new int[] { BoardUtils.NorthEast, BoardUtils.NorthWest, BoardUtils.SouthEast, BoardUtils.SouthWest };
+    private static readonly int[] queenDirections = new int[] { BoardUtils.North, BoardUtils.South, BoardUtils.East, BoardUtils.West, BoardUtils.NorthEast, BoardUtils.NorthWest, BoardUtils.SouthEast, BoardUtils.SouthWest };
     private static readonly int[] knightDirections = new int[] { 17, -17, 15, -15, 10, -10, 6, -6 };
-    private static readonly int[] kingDirections = new int[] { -1, 1, -8, 8, -7, 7, -9, 9};
+    private static readonly int[] kingDirections = new int[] { BoardUtils.North, BoardUtils.South, BoardUtils.East, BoardUtils.West, BoardUtils.NorthEast, BoardUtils.NorthWest, BoardUtils.SouthEast, BoardUtils.SouthWest };
     // TODO: Pawns also?
 
     // TODO: Maybe make the map from piece to moves into a 2D array for memory efficiency?
@@ -37,26 +36,26 @@ public class MoveGen {
         // TODO: Figure out if MakeMove or UnmakeMove or w/e is wrong and fix...
 
         // For now, naïve implementation - iterate over all pseudo legal moves. Generate all responses, check if a response can capture king and if not, add move
-        /*List<Move> legalMoves = new();
+        List<Move> legalMoves = new();
         List<Move> pseudoLegal = PseudoLegalMoves(board);
 
         // I THINK THE ISSUE IS: We play the move, AND THEN look at valid moves - e.g. white plays 1.e4 and after that we look at white moves.
 
-        Debug.Log("Initial moves: " + pseudoLegal.Count);
+        //Debug.Log("Initial moves: " + pseudoLegal.Count + "for player " + board.ColorToMove);
         //foreach (Move m in pseudoLegal) Debug.Log(m);
-        
-        
+
+
         foreach (Move pseudoMove in pseudoLegal) {
             board.MakeMove(pseudoMove);
             List<Move> responses = PseudoLegalMoves(board);
 
             // King was not capturable
-            if (!responses.Any(r => r.TargetSquare == board.KingSquareForColor(Piece.OppositeColor(board.ColorToMove)))) legalMoves.Add(pseudoMove);
+            if (!(responses.Any(r => r.TargetSquare == board.KingSquareForColor(Piece.OppositeColor(board.ColorToMove))))) legalMoves.Add(pseudoMove);
             board.UnmakeMove(pseudoMove);
         }
 
-        return legalMoves; */
-        return PseudoLegalMoves(board);
+        return legalMoves;
+        //return PseudoLegalMoves(board);
     }
 
 
@@ -117,8 +116,8 @@ public class MoveGen {
 
             // TODO: Check if startsquare is one from promotion since this should be handled (adding flag to move struct)
             if (BoardUtils.IsPromotionRank(pawn, colorOfPawn)) Debug.Log("Handle Promotion");
-            
-            
+
+
             moves.Add(new Move(startSquare, infront));
 
             // Check if the square two in front is also empty and the pawn square is the starting
@@ -126,14 +125,14 @@ public class MoveGen {
             int rankOfPawn = BoardUtils.RankOfSquare(startSquare);
             bool atStartingRank = rankOfPawn == BoardUtils.PawnStartRank(colorOfPawn);
 
-            if (board.PieceAt(twoInFront) == Piece.None && atStartingRank) {
+            if (atStartingRank && board.PieceAt(twoInFront) == Piece.None) {
                 moves.Add(new Move(startSquare, twoInFront, Move.Type.PawnDouble));
             }
         }
 
 
         /* CAPTURE FOR PAWN */
-        
+
         // Compute the legal capture squares for the pawn
         int[] captureSquares = BoardUtils.CaptureSquaresForPawn(startSquare, colorOfPawn);
         for (int i = 0; i < captureSquares.Length; i++) {
@@ -141,7 +140,7 @@ public class MoveGen {
             // Regular captures - an enemy piece is present at the target position
             int targetSquare = startSquare + captureSquares[i];
             int targetPiece = board.PieceAt(targetSquare);
-            
+
             // Piece at target square is enemy piece
             if (Piece.IsColor(targetPiece, Piece.OppositeColor(colorOfPawn))) {
                 moves.Add(new Move(startSquare, targetSquare));
@@ -170,7 +169,7 @@ public class MoveGen {
             if (targetSquare >= 0 && targetSquare <= 63) {
 
                 int pieceAtTarget = board.PieceAt(targetSquare);
-                
+
                 // If empty or enemy present, allow the move - TODO: Only allow if square is not controlled by enemy
                 if (!Piece.IsColor(pieceAtTarget, friendlyColor)) moves.Add(new Move(startSquare, targetSquare));
             }
@@ -184,7 +183,7 @@ public class MoveGen {
         for (int i = -2; i <= 2; i += 4) {
 
             int targetSquare = startSquare + i;
-            
+
             // TODO: Find a cleaner way instead of checking on this condition each time perhaps?
             if (targetSquare >= 0 && targetSquare <= 63) {
                 int pieceAtTarget = board.PieceAt(targetSquare);
@@ -245,14 +244,18 @@ public class MoveGen {
         return moves;
 
     }
-
+    // TODO: Queen can go from 3 --> 48...
+    // ISSUE: Pieces wrap around the board.
     private List<Move> GenerateSlidingPieceMoves(int piece, int[] directions, int startSquare, Board board) {
         List<Move> moves = new List<Move>();
 
         // Loop over all possible directions for our piece
         for (int i = 0; i < directions.Length; i++) {
             // Worst case, we have a distance of 7 to the edge of the board for the direction. TODO: Precompute this for each square and direction to safe memory.
-            for (int j = 1; j < 7; j++) {
+            // Think issue is we always go up to 7. We should stop when we hit edge. 
+            //for (int j = 1; j <= 7; j++) {
+
+            for (int j = 1; j <= BoardUtils.DistanceToEdge[startSquare][i]; j++) { 
 
                 int targetSquare = startSquare + directions[i] * j;
 
@@ -266,6 +269,10 @@ public class MoveGen {
 
                     // If enemy piece at target square, blocked again so stop searching
                     if (Piece.IsColor(pieceOnTarget, Piece.OppositeColor(piece))) break;
+
+                    if (targetSquare == 48) {
+                        Debug.Log($"i: {i}, j: {j}, direction: {directions[i]}, start: {startSquare}, Piece: {Piece.Type(piece)}");
+                    }
                 }
 
             }
