@@ -124,7 +124,6 @@ public class Player {
                 // Trying move is valid. Mark as valid and stop looking
                 legalMove = true;
                 chosenMove = move;
-                Debug.Log("Chosen move is: " + move);
                 break;
             }
         }
@@ -136,8 +135,6 @@ public class Player {
 
             // If someone subscribes to our onMoveMade event, trigger the code for it here - e.g. the GameMangager gets notified here.
             onMoveMade?.Invoke(chosenMove);
-
-
         } else {
             CancelPieceSelection();
         }
@@ -160,6 +157,7 @@ public class Player {
         currentState = InputState.None;
         boardUI.DeselectSquare(selectedPos);
         boardUI.ResetPiecePosition(selectedPos);
+        boardUI.ResetHighlightedSquares(board);
     }    
 
 }

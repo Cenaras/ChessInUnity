@@ -43,6 +43,13 @@ public static class BoardUtils {
     public static readonly int E1 = 4;
     public static readonly int E8 = 60;
 
+    /* Squares where king castles through, i.e. can not be under attack when castling */
+    public static readonly int D1 = 3;
+    public static readonly int D8 = 59;
+    public static readonly int F1 = 5;
+    public static readonly int F8 = 61;
+
+
     // First index is start square, second index is direction, result is number of squares to edge of board. Initialized in from GameManager
     public static int[][] DistanceToEdge;
 
@@ -123,13 +130,6 @@ public static class BoardUtils {
             else return new int[] { blackLeftOffset, blackRightOffset };
 
         }
-
-
-
-
-
-
-
         throw new NotImplementedException();
     }
 
@@ -175,8 +175,8 @@ public static class BoardUtils {
                     int piece = type | color;
 
                     Squares[rank * 8 + file] = piece;
+                    file++;
                 }
-                file++;
             }
 
         }

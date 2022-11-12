@@ -113,13 +113,14 @@ public class Board
     private void MoveRookForCastle(Move.Type castleType, int friendlyColor, int rookTargetSquare, bool reverseMove) {
         bool kingSide = castleType == Move.Type.KingCastle;
         int rookStartSquare = kingSide ? BoardUtils.RookKingStartSquare(friendlyColor) : BoardUtils.RookQueenStartSquare(friendlyColor);
-        int rookPiece = PieceAt(rookStartSquare);
 
         // If reversing move in Unmake move, do opposite castling.
         if (reverseMove) {
+            int rookPiece = PieceAt(rookTargetSquare);
             Squares[rookStartSquare] = rookPiece;
             Squares[rookTargetSquare] = Piece.None;
         } else {
+            int rookPiece = PieceAt(rookStartSquare);
             Squares[rookStartSquare] = Piece.None;
             Squares[rookTargetSquare] = rookPiece;
         }
@@ -129,6 +130,9 @@ public class Board
     /* Unmakes a move, restoring the board state and current game state to that of the previous position. Since we're storing the previous state in the stack, this
      * method does not have to worry about anything else that popping the stack to previous state. */
     public void UnmakeMove(Move move) {
+
+        // NOTE: Unmaking a Castle move, makes the rook dissappear... Maybe fix this?
+
         // TODO: Maybe we can merge this together with MakeMove to have a simple method instead of having two. Right now we have code duplication tendencies.
 
         // The move is the one made on the board so we flip the from and to squares

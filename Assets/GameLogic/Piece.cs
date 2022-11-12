@@ -60,5 +60,4 @@ public static class Piece {
         if (GetColor(piece) == White) return Black;
         return White;
     }
-
 }
