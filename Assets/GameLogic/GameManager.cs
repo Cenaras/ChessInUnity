@@ -18,10 +18,13 @@ public class GameManager : MonoBehaviour
         boardUI = FindObjectOfType<BoardUI>();
         NewGame();
         BoardUtils.PrecomputeDistanceToEdge();
-        // This doesn't hold for 5 - maybe illegal castles or anything else? It is WAY higher than it is supposed to be.
-        // Real: 4865609. Found: 14142418 - Off by: Around 9 million
-        TestStuff(1); // When moving any piece, the rooks are removed when using position 2...
-        // Probably the castling undo does not work properly... That's why stuff is removed maybe?
+
+        TestStuff(6); 
+        
+
+        //TestStuffWithMove(1);
+
+        /* Still missing pawn promotions! */
 
     }
 
@@ -33,6 +36,17 @@ public class GameManager : MonoBehaviour
         watch.Stop();
         TimeSpan elapsed = watch.Elapsed;
         Debug.Log($"Found {positions} positions in time {elapsed.Minutes}m:{elapsed.Seconds}s:{elapsed.Milliseconds}ms");
+    }
+
+    private void TestStuffWithMove(int depth) {
+        System.Diagnostics.Stopwatch watch = new();
+        Debug.Log("Running test of depth " + depth + " ply");
+        watch.Start();
+        int positions = MoveGenerationTest.MoveGenTestStuff(board, depth);
+        watch.Stop();
+        TimeSpan elapsed = watch.Elapsed;
+        Debug.Log($"Found {positions} positions in time {elapsed.Minutes}m:{elapsed.Seconds}s:{elapsed.Milliseconds}ms");
+        boardUI.UpdatePosition(board);
     }
 
 
@@ -54,8 +68,8 @@ public class GameManager : MonoBehaviour
 
     /* Creates a new game, creating new players a new board and subscribing to the OnMoveMade event */
     private void NewGame() {
-        //board = BoardUtils.ParseFenString(BoardUtils.FenStartingPosition);
-        board = BoardUtils.ParseFenString(MoveGenerationTest.Position5);
+        board = BoardUtils.ParseFenString(BoardUtils.FenStartingPosition);
+        //board = BoardUtils.ParseFenString(MoveGenerationTest.Position2);
         
         BoardUtils.PrintBoard(board);
         whitePlayer = new Player(board);

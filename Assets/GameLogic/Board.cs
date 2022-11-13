@@ -38,14 +38,6 @@ public class Board
         currentState = GameState.Initialize();
     }
 
-    /* 
-       The board should have the following 
-        - MakeMove which takes a move as input and performs it
-        - Unmake move which takes a move as input an undoes it
-        - 64 squares for our pieces
-        - A way to generate the board
-     */
-
 
     // Most likely needs the state info struct passed as well.
     /* Making a move on the board. The MoveGen has already ensured this move is valid and thus we do not need any assertions on the game state. */
@@ -92,8 +84,9 @@ public class Board
 
         /* Handle capturing en-passant */
         if (move.MoveType == Move.Type.EnPassant) {
-            // Capture the pawn
+            // Capture the pawn and mark in history as captured
             int capturedPawnSquare = friendlyColor == Piece.White ? move.TargetSquare - 8 : move.TargetSquare + 8;
+            currentState.CapturedPiece = PieceAt(capturedPawnSquare);
             Squares[capturedPawnSquare] = Piece.None;
         }
 
@@ -102,8 +95,6 @@ public class Board
             if (friendlyColor == Piece.White) currentState.WhiteKingSquare = move.TargetSquare;
             else currentState.BlackKingSquare = move.TargetSquare;
         }
-
-
         Squares[move.StartSquare] = Piece.None;
         Squares[move.TargetSquare] = movePiece;
         ColorToMove = Piece.OppositeColor(ColorToMove);
@@ -131,7 +122,7 @@ public class Board
      * method does not have to worry about anything else that popping the stack to previous state. */
     public void UnmakeMove(Move move) {
 
-        // NOTE: Unmaking a Castle move, makes the rook dissappear... Maybe fix this?
+        // NOTE: Maybe undoing an Ep capture is wrong? Seems like piece dissapears when movegen moves and unmoves ep...
 
         // TODO: Maybe we can merge this together with MakeMove to have a simple method instead of having two. Right now we have code duplication tendencies.
 
@@ -156,7 +147,9 @@ public class Board
             // EP is handled differently from normal captures.
             if (move.MoveType == Move.Type.EnPassant) {
                 int epPawnSquare = friendlyColor == Piece.White ? startSquare - 8 : startSquare + 8;
+                // Restore captured ep pawn, and move capturing pawn back
                 Squares[epPawnSquare] = restoredPiece;
+                Squares[startSquare] = Piece.None;
             } else {
                 Squares[startSquare] = restoredPiece;
             }
